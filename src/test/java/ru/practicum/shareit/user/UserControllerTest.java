@@ -41,10 +41,10 @@ class UserControllerTest {
                 .email("valid@email.tut")
                 .name("Valid Name")
                 .build();
-        userDto = UserDto.builder().
-                email("updated@email.tut").
-                name("Updated Name").
-                build();
+        userDto = UserDto.builder()
+                .email("updated@email.tut")
+                .name("Updated Name")
+                .build();
         userId = "1";
     }
 

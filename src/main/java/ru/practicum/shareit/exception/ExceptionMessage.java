@@ -1,9 +1,7 @@
-package ru.practicum.shareit.exception.message;
+package ru.practicum.shareit.exception;
 
 public enum ExceptionMessage {
-    OBJECT_ALREADY_EXIST("Объект ID:'%s' уже существует"),
-    OBJECT_BY_ID_NOT_FOUND("Объект ID:'%s' не найден"),
-    OBJECT_NOT_FOUND("Объект не найден"),
+    ITEM_NOT_FOUND("Запрашиваемая вещь не найдена"),
     USER_NOT_FOUND("Пользователь с ID:'%s' не найден"),
     USER_EMAIL_ALREADY_EXIST("Пользователь с email:'%s' уже существует");
 

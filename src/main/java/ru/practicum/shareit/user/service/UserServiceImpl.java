@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserDtoMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -17,24 +18,9 @@ import static ru.practicum.shareit.user.UserLogMessage.*;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
-    private User updateUserFromDto(User user, UserDto userDto) {
-        final User updatedUser = User.builder().
-                id(user.getId()).
-                name(user.getName()).
-                email(user.getEmail()).
-                build();
-        if ((userDto.getName() != null) && (!userDto.getName().isBlank())) {
-            updatedUser.setName(userDto.getName());
-        }
-        if ((userDto.getEmail() != null) && (!userDto.getEmail().isBlank())) {
-            updatedUser.setEmail(userDto.getEmail());
-        }
-        return updatedUser;
-    }
-
     @Override
-    public User addNewUser(User user) {
-        userRepository.addNewUser(user);
+    public User addUser(User user) {
+        userRepository.addUser(user);
         log.info(USER_ADDED.message(), user.getId(), user.getEmail());
         return user;
     }
@@ -42,7 +28,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(long id, UserDto userDto) {
         final User user = userRepository.getUser(id);
-        final User updatedUser = this.updateUserFromDto(user, userDto);
+        final User updatedUser = UserDtoMapper.toUserWhenUpdate(user, userDto);
         userRepository.updateUser(updatedUser);
         log.info(USER_UPDATED.message(), id);
         return updatedUser;
