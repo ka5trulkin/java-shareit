@@ -30,15 +30,15 @@ public class UserRepositoryInMemory implements UserRepository {
     }
 
     private void updateEmailsList(User user) {
-        String userInStorageEmail = userStorage.get(user.getId()).getEmail();
-        if (!userInStorageEmail.equals(user.getEmail())) {
+        String userEmailInStorage = userStorage.get(user.getId()).getEmail();
+        if (!userEmailInStorage.equals(user.getEmail())) {
             this.checkUserEmailDuplicate(user);
-            emailsList.remove(userInStorageEmail);
+            emailsList.remove(userEmailInStorage);
         }
     }
 
     @Override
-    public void addNewUser(User user) {
+    public void addUser(User user) {
         this.checkUserEmailDuplicate(user);
         this.setUserId(user);
         userStorage.put(user.getId(), user);
@@ -46,8 +46,10 @@ public class UserRepositoryInMemory implements UserRepository {
 
     @Override
     public void updateUser(User user) {
-        this.updateEmailsList(user);
-        userStorage.put(user.getId(), user);
+        if (userStorage.containsKey(user.getId())) {
+            this.updateEmailsList(user);
+            userStorage.put(user.getId(), user);
+        } else throw new UserNotFoundExistException(user.getId());
     }
 
     @Override

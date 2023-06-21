@@ -5,7 +5,7 @@ import ru.practicum.shareit.user.model.User;
 import java.util.Collection;
 
 public interface UserRepository {
-    void addNewUser(User user);
+    void addUser(User user);
 
     void updateUser(User user);
 
