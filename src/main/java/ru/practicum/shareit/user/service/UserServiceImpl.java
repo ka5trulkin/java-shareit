@@ -33,8 +33,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User addNewUser(User user) {
-        userRepository.addNewUser(user);
+    public User addUser(User user) {
+        userRepository.addUser(user);
         log.info(USER_ADDED.message(), user.getId(), user.getEmail());
         return user;
     }
