@@ -2,7 +2,7 @@ package ru.practicum.shareit.user.exception;
 
 import ru.practicum.shareit.exception.DataConflictException;
 
-import static ru.practicum.shareit.exception.message.ExceptionMessage.USER_EMAIL_ALREADY_EXIST;
+import static ru.practicum.shareit.exception.ExceptionMessage.USER_EMAIL_ALREADY_EXIST;
 
 public class UserEmailAlreadyExistException extends DataConflictException {
     public UserEmailAlreadyExistException(String email) {

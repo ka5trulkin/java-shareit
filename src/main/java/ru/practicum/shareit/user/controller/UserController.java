@@ -18,7 +18,6 @@ import static ru.practicum.shareit.user.UserLogMessage.*;
 /**
  * TODO Sprint add-controllers.
  */
-
 @Slf4j
 @RestController
 @RequestMapping(path = "/users")
@@ -28,14 +27,15 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    User addNewUser(@Valid @RequestBody User user) {
+    User createUser(@Valid @RequestBody User user) {
         log.info(REQUEST_ADD_USER.message(), user.getEmail());
-        return userService.addNewUser(user);
+        return userService.addUser(user);
     }
 
     @PatchMapping("/{id}")
     @ResponseStatus(OK)
-    User updateUser(@PathVariable long id, @Valid @RequestBody UserDto userDto) {
+    User updateUser(@PathVariable long id,
+                    @Valid @RequestBody UserDto userDto) {
         log.info(REQUEST_UPDATE_USER.message(), id);
         return userService.updateUser(id, userDto);
     }
