@@ -4,16 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.dto.CreateInfo;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.service.CreateInfo;
 
 import java.util.Collection;
 
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
 import static ru.practicum.shareit.item.ItemLogMessage.*;
+import static ru.practicum.shareit.service.PatternsApp.X_SHARER_USER_ID;
 
 /**
  * TODO Sprint add-controllers.
@@ -27,39 +26,35 @@ public class ItemController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    Item createItem(@RequestHeader("X-Sharer-User-Id") long ownerId,
+    ItemDto createItem(@RequestHeader(X_SHARER_USER_ID) Long ownerId,
                     @Validated(CreateInfo.class) @RequestBody ItemDto itemDto) {
-        log.info(REQUEST_ADD_ITEM.message(), itemDto.getName());
+        log.info(REQUEST_ADD_ITEM, itemDto.getName());
         return itemService.addItem(ownerId, itemDto);
     }
 
     @PatchMapping("/{id}")
-    @ResponseStatus(OK)
-    Item updateItem(@PathVariable long id,
-                    @RequestHeader("X-Sharer-User-Id") long ownerId,
+    ItemDto updateItem(@PathVariable Long id,
+                    @RequestHeader(X_SHARER_USER_ID) Long ownerId,
                     @RequestBody ItemDto itemDto) {
-        log.info(REQUEST_UPDATE_ITEM.message(), id);
+        log.info(REQUEST_UPDATE_ITEM, id);
         return itemService.updateItem(id, ownerId, itemDto);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(OK)
-    Item getItemById(@PathVariable long id) {
-        log.info(REQUEST_GET_ITEM.message(), id);
+    ItemDto getItemById(@PathVariable Long id) {
+        log.info(REQUEST_GET_ITEM, id);
         return itemService.getItemById(id);
     }
 
     @GetMapping
-    @ResponseStatus(OK)
-    Collection<Item> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") long ownerId) {
-        log.info(REQUEST_GET_ITEM_LIST.message());
+    Collection<ItemDto> getItemsByOwner(@RequestHeader(X_SHARER_USER_ID) Long ownerId) {
+        log.info(REQUEST_GET_ITEM_LIST);
         return itemService.getItemsByOwner(ownerId);
     }
 
     @GetMapping("/search")
-    @ResponseStatus(OK)
-    Collection<Item> getItemBySearch(@RequestParam String text) {
-        log.info(REQUEST_GET_ITEM_BY_QUERY.message(), text);
+    Collection<ItemDto> getItemBySearch(@RequestParam String text) {
+        log.info(REQUEST_GET_ITEM_BY_QUERY, text);
         return itemService.getItemBySearch(text);
     }
 }

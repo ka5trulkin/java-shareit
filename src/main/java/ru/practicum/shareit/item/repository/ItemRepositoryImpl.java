@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.repository;
 
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
+import ru.practicum.shareit.item.exception.OwnerNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.*;
@@ -19,12 +20,12 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     private void checkItemExists(long id) {
         if (!itemStorage.containsKey(id)) {
-            throw new ItemNotFoundException();
+            throw new ItemNotFoundException(id);
         }
     }
 
     private void addToOwnerItemRelationship(Item item) {
-        long ownerId = item.getOwnerId();
+        long ownerId = item.getOwner().getId();
         if (!ownerItemRelationship.containsKey(ownerId)) {
             ownerItemRelationship.put(ownerId, new ArrayList<>());
         }
@@ -41,7 +42,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     @Override
     public void updateItem(Item item) {
         this.checkItemExists(item.getId());
-        this.checkIsOwnerHasItem(item.getId(), item.getOwnerId());
+        this.checkIsOwnerHasItem(item.getId(), item.getOwner().getId());
         itemStorage.put(item.getId(), item);
     }
 
@@ -54,7 +55,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     @Override
     public Collection<Item> getItemsByOwner(long ownerId) {
         if (!ownerItemRelationship.containsKey(ownerId)) {
-            throw new ItemNotFoundException();
+            throw new OwnerNotFoundException(ownerId);
         }
         return ownerItemRelationship.get(ownerId).stream()
                 .map(itemStorage::get)
@@ -64,10 +65,9 @@ public class ItemRepositoryImpl implements ItemRepository {
     @Override
     public Collection<Item> getItemBySearch(String query) {
         return itemStorage.values().stream()
-                .filter(
-                        item -> item.getName().toLowerCase().contains(query)
-                                || item.getDescription().toLowerCase().contains(query)
-                                && item.isAvailable())
+                .filter(Item::isAvailable)
+                .filter(item -> item.getName().toLowerCase().contains(query)
+                        || item.getDescription().toLowerCase().contains(query))
                 .collect(Collectors.toList());
     }
 

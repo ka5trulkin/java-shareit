@@ -2,17 +2,17 @@ package ru.practicum.shareit.user.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.service.CreateInfo;
+import ru.practicum.shareit.service.UpdateInfo;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import javax.validation.Valid;
-
 import java.util.Collection;
 
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
 import static ru.practicum.shareit.user.UserLogMessage.*;
 
 /**
@@ -27,37 +27,33 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    User createUser(@Valid @RequestBody User user) {
-        log.info(REQUEST_ADD_USER.message(), user.getEmail());
-        return userService.addUser(user);
+    UserDto createUser(@Validated(CreateInfo.class) @RequestBody UserDto userDto) {
+        log.info(REQUEST_ADD_USER, userDto.getEmail());
+        return userService.addUser(userDto);
     }
 
     @PatchMapping("/{id}")
-    @ResponseStatus(OK)
-    User updateUser(@PathVariable long id,
-                    @Valid @RequestBody UserDto userDto) {
-        log.info(REQUEST_UPDATE_USER.message(), id);
+    UserDto updateUser(@PathVariable Long id,
+                    @Validated(UpdateInfo.class) @RequestBody UserDto userDto) {
+        log.info(REQUEST_UPDATE_USER, id);
         return userService.updateUser(id, userDto);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(OK)
-    User getUser(@PathVariable long id) {
-        log.info(REQUEST_GET_USER.message(), id);
+    User getUser(@PathVariable Long id) {
+        log.info(REQUEST_GET_USER, id);
         return userService.getUser(id);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(OK)
-    void deleteUser(@PathVariable long id) {
-        log.info(REQUEST_DELETE_USER.message(), id);
+    void deleteUser(@PathVariable Long id) {
+        log.info(REQUEST_DELETE_USER, id);
         userService.deleteUser(id);
     }
 
     @GetMapping
-    @ResponseStatus(OK)
     Collection<User> getAllUsers() {
-        log.info(REQUEST_GET_USER_LIST.message());
+        log.info(REQUEST_GET_USER_LIST);
         return userService.getAllUsers();
     }
 }

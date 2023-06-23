@@ -10,7 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -26,18 +25,18 @@ class UserControllerTest {
     @Autowired
     private MockMvc mockMvc;
     private final String urlPath = "/users";
-    private User validUser;
-    private User testUser;
+    private UserDto validUserDto;
+    private UserDto testUserDto;
     private UserDto userDto;
     private String userId;
 
     @BeforeEach
     void beforeEach() {
-        validUser = User.builder()
+        validUserDto = UserDto.builder()
                 .email("email@new.org")
                 .name("Валерий Кукушкин")
                 .build();
-        testUser = User.builder()
+        testUserDto = UserDto.builder()
                 .email("valid@email.tut")
                 .name("Valid Name")
                 .build();
@@ -51,28 +50,28 @@ class UserControllerTest {
     @Test
     void addNewUser() throws Exception {
         // должна быть ошибка некорректного Email
-        testUser.setEmail("invalid@@email.tut");
+        testUserDto.setEmail("invalid@@email.tut");
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testUser)))
+                        .content(objectMapper.writeValueAsString(testUserDto)))
                 .andExpect(status().isBadRequest());
         // должна быть ошибка пустого Email
-        testUser.setEmail("");
+        testUserDto.setEmail("");
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testUser)))
+                        .content(objectMapper.writeValueAsString(testUserDto)))
                 .andExpect(status().isBadRequest());
         // должна быть ошибка пустого Name
-        testUser.setEmail(validUser.getEmail());
-        testUser.setName("");
+        testUserDto.setEmail(validUserDto.getEmail());
+        testUserDto.setName("");
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testUser)))
+                        .content(objectMapper.writeValueAsString(testUserDto)))
                 .andExpect(status().isBadRequest());
         // должен быть добавлен новый пользователь
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validUser)))
+                        .content(objectMapper.writeValueAsString(validUserDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))
@@ -80,7 +79,7 @@ class UserControllerTest {
         // должен быть ошибка существующего Email
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validUser)))
+                        .content(objectMapper.writeValueAsString(validUserDto)))
                 .andExpect(status().isConflict());
     }
 
@@ -89,7 +88,7 @@ class UserControllerTest {
         // добавление пользователя
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validUser)))
+                        .content(objectMapper.writeValueAsString(validUserDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))
@@ -105,7 +104,7 @@ class UserControllerTest {
         // добавление пользователя после обновления
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validUser)))
+                        .content(objectMapper.writeValueAsString(validUserDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("2"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))
@@ -141,7 +140,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email").value("new@email.kek"))
                 .andExpect(jsonPath("$.name").value("New name"));
         // должна быть ошибка обновления пользователя с уже существующим email
-        userDto.setEmail(validUser.getEmail());
+        userDto.setEmail(validUserDto.getEmail());
         userDto.setName(null);
         mockMvc.perform(patch(String.join("/", urlPath, userId))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -167,7 +166,7 @@ class UserControllerTest {
         // добавление пользователя
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validUser)))
+                        .content(objectMapper.writeValueAsString(validUserDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))
@@ -192,7 +191,7 @@ class UserControllerTest {
         // добавление пользователя
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validUser)))
+                        .content(objectMapper.writeValueAsString(validUserDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))
@@ -221,7 +220,7 @@ class UserControllerTest {
         // добавление первого пользователя
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validUser)))
+                        .content(objectMapper.writeValueAsString(validUserDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))
@@ -236,7 +235,7 @@ class UserControllerTest {
         // добавление второго пользователя
         mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testUser)))
+                        .content(objectMapper.writeValueAsString(testUserDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("2"))
                 .andExpect(jsonPath("$.email").value("valid@email.tut"))

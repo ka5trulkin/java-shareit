@@ -19,37 +19,38 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User addUser(User user) {
+    public UserDto addUser(UserDto userDto) {
+        final User user = UserDtoMapper.toUserWhenCreate(userDto);
         userRepository.addUser(user);
-        log.info(USER_ADDED.message(), user.getId(), user.getEmail());
-        return user;
+        log.info(USER_ADDED, user.getId(), user.getEmail());
+        return UserDtoMapper.fromUser(user);
     }
 
     @Override
-    public User updateUser(long id, UserDto userDto) {
-        final User user = userRepository.getUser(id);
+    public UserDto updateUser(long id, UserDto userDto) {
+        User user = userRepository.getUser(id);
         final User updatedUser = UserDtoMapper.toUserWhenUpdate(user, userDto);
         userRepository.updateUser(updatedUser);
-        log.info(USER_UPDATED.message(), id);
-        return updatedUser;
+        log.info(USER_UPDATED, id);
+        return UserDtoMapper.fromUser(updatedUser);
     }
 
     @Override
     public void deleteUser(long id) {
-        log.info(USER_DELETED.message(), id);
+        log.info(USER_DELETED, id);
         userRepository.deleteUser(id);
     }
 
     @Override
     public User getUser(long id) {
         User user = userRepository.getUser(id);
-        log.info(GET_USER.message(), id);
+        log.info(GET_USER, id);
         return user;
     }
 
     @Override
     public Collection<User> getAllUsers() {
-        log.info(GET_USER_LIST.message());
+        log.info(GET_USER_LIST);
         return userRepository.getAllUsers();
     }
 }

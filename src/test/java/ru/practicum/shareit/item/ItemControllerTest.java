@@ -10,8 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -28,26 +27,19 @@ class ItemControllerTest {
     private MockMvc mockMvc;
     private final String urlItemPath = "/items";
     private final String urlUserPath = "/users";
-    private User user;
-    private Item validItem;
-    private Item testItem;
+    private UserDto userDto;
+    private ItemDto testItemDto;
     private ItemDto itemDto;
     private String itemId;
 
     @BeforeEach
     void beforeEach() {
-        user = User.builder()
+        userDto = UserDto.builder()
                 .email("email@new.org")
                 .name("Валерий Кукушкин")
                 .build();
-        validItem = Item.builder()
-                .ownerId(1)
-                .name("Перфоратор Бошш")
-                .description("Бери и е...")
-                .available(true)
-                .build();
-        testItem = Item.builder()
-                .ownerId(1)
+        testItemDto = ItemDto.builder()
+                .ownerId(1L)
                 .name("Valid name")
                 .description("Valid description")
                 .available(true)
@@ -63,23 +55,23 @@ class ItemControllerTest {
     @Test
     void addNewItem() throws Exception {
         // должна быть ошибка пустого Name
-        testItem.setName(" ");
+        testItemDto.setName(" ");
         mockMvc.perform(post(urlItemPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testItem)))
+                        .content(objectMapper.writeValueAsString(testItemDto)))
                 .andExpect(status().isBadRequest());
         // должна быть ошибка пустого Description
-        testItem.setName("Valid name");
-        testItem.setDescription(" ");
+        testItemDto.setName("Valid name");
+        testItemDto.setDescription(" ");
         mockMvc.perform(post(urlItemPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testItem)))
+                        .content(objectMapper.writeValueAsString(testItemDto)))
                 .andExpect(status().isBadRequest());
-        testItem.setDescription("Valid description");
+        testItemDto.setDescription("Valid description");
         // должна быть добавлена новая вещь
         mockMvc.perform(post(urlUserPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user)))
+                        .content(objectMapper.writeValueAsString(userDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))
@@ -107,7 +99,7 @@ class ItemControllerTest {
         // добавление вещи
         mockMvc.perform(post(urlUserPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user)))
+                        .content(objectMapper.writeValueAsString(userDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))
@@ -123,11 +115,11 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.description").value("Бери и е..."))
                 .andExpect(jsonPath("$.available").value(true));
         // обновление вещи
-        testItem.setAvailable(false);
+        testItemDto.setAvailable(false);
         mockMvc.perform(patch(String.join("/", urlItemPath, itemId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Sharer-User-Id", 1)
-                        .content(objectMapper.writeValueAsString(testItem)))
+                        .content(objectMapper.writeValueAsString(testItemDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.ownerId").value("1"))
@@ -137,21 +129,21 @@ class ItemControllerTest {
         // должна быть ошибка без id пользователя
         mockMvc.perform(patch(String.join("/", urlItemPath, itemId))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testItem)))
+                        .content(objectMapper.writeValueAsString(testItemDto)))
                 .andExpect(status().isBadRequest());
         // должна быть ошибка несуществующего пользователя
         mockMvc.perform(patch(String.join("/", urlItemPath, itemId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Sharer-User-Id", 777)
-                        .content(objectMapper.writeValueAsString(testItem)))
+                        .content(objectMapper.writeValueAsString(testItemDto)))
                 .andExpect(status().isNotFound());
         // обновление name
-        testItem.setName("New name");
-        testItem.setDescription(null);
+        testItemDto.setName("New name");
+        testItemDto.setDescription(null);
         mockMvc.perform(patch(String.join("/", urlItemPath, itemId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Sharer-User-Id", 1)
-                        .content(objectMapper.writeValueAsString(testItem)))
+                        .content(objectMapper.writeValueAsString(testItemDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.ownerId").value("1"))
@@ -159,12 +151,12 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.description").value("Valid description"))
                 .andExpect(jsonPath("$.available").value(false));
         // обновление description
-        testItem.setName(null);
-        testItem.setDescription("New description");
+        testItemDto.setName(null);
+        testItemDto.setDescription("New description");
         mockMvc.perform(patch(String.join("/", urlItemPath, itemId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Sharer-User-Id", 1)
-                        .content(objectMapper.writeValueAsString(testItem)))
+                        .content(objectMapper.writeValueAsString(testItemDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.ownerId").value("1"))
@@ -172,13 +164,13 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.description").value("New description"))
                 .andExpect(jsonPath("$.available").value(false));
         // обновление available
-        testItem.setName(null);
-        testItem.setDescription(null);
-        testItem.setAvailable(true);
+        testItemDto.setName(null);
+        testItemDto.setDescription(null);
+        testItemDto.setAvailable(true);
         mockMvc.perform(patch(String.join("/", urlItemPath, itemId))
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Sharer-User-Id", 1)
-                        .content(objectMapper.writeValueAsString(testItem)))
+                        .content(objectMapper.writeValueAsString(testItemDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.ownerId").value("1"))
@@ -192,7 +184,7 @@ class ItemControllerTest {
         // добавление вещи
         mockMvc.perform(post(urlUserPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user)))
+                        .content(objectMapper.writeValueAsString(userDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))
@@ -230,7 +222,7 @@ class ItemControllerTest {
         // добавление вещи
         mockMvc.perform(post(urlUserPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user)))
+                        .content(objectMapper.writeValueAsString(userDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))
@@ -270,7 +262,7 @@ class ItemControllerTest {
         // добавление вещи
         mockMvc.perform(post(urlUserPath)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user)))
+                        .content(objectMapper.writeValueAsString(userDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.email").value("email@new.org"))

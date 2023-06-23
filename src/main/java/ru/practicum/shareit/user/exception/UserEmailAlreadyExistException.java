@@ -6,6 +6,6 @@ import static ru.practicum.shareit.exception.ExceptionMessage.USER_EMAIL_ALREADY
 
 public class UserEmailAlreadyExistException extends DataConflictException {
     public UserEmailAlreadyExistException(String email) {
-        super(String.format(USER_EMAIL_ALREADY_EXIST.message(), email));
+        super(String.format(USER_EMAIL_ALREADY_EXIST, email));
     }
 }

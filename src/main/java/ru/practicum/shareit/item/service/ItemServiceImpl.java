@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoMapper;
 import ru.practicum.shareit.item.exception.ItemNotFoundException;
+import ru.practicum.shareit.item.exception.OwnerNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.exception.UserNotFoundExistException;
@@ -24,10 +25,11 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
 
     private void checkOwnerOnCreate(Item item) {
+        long ownerId = item.getOwner().getId();
         try {
-            userRepository.getUser(item.getOwnerId());
+            userRepository.getUser(ownerId);
         } catch (UserNotFoundExistException e) {
-            throw new ItemNotFoundException();
+            throw new OwnerNotFoundException(ownerId);
         }
     }
 
@@ -35,53 +37,53 @@ public class ItemServiceImpl implements ItemService {
         try {
             userRepository.getUser(ownerId);
         } catch (UserNotFoundExistException e) {
-            throw new ItemNotFoundException();
+            throw new OwnerNotFoundException(ownerId);
         }
         if (!itemRepository.checkIsOwnerHasItem(id, ownerId)) {
-            throw new ItemNotFoundException();
+            throw new ItemNotFoundException(id);
         }
     }
 
     @Override
-    public Item addItem(long ownerId, ItemDto itemDto) {
+    public ItemDto addItem(long ownerId, ItemDto itemDto) {
         Item item = ItemDtoMapper.toItem(ownerId, itemDto);
         this.checkOwnerOnCreate(item);
         itemRepository.addItem(item);
-        log.info(ITEM_ADDED.message(), item.getId(), item.getName());
-        return item;
+        log.info(ITEM_ADDED, item.getId(), item.getName());
+        return ItemDtoMapper.fromItem(item);
     }
 
     @Override
-    public Item updateItem(long id, long ownerId, ItemDto itemDto) {
+    public ItemDto updateItem(long id, long ownerId, ItemDto itemDto) {
         this.checkOwnerOnUpdate(id, ownerId);
         final Item item = itemRepository.getItemById(id);
         final Item updatedItem = ItemDtoMapper.toItemWhenUpdate(item, itemDto);
         itemRepository.updateItem(updatedItem);
-        log.info(ITEM_UPDATED.message(), updatedItem.getId());
-        return updatedItem;
+        log.info(ITEM_UPDATED, updatedItem.getId());
+        return ItemDtoMapper.fromItem(updatedItem);
     }
 
     @Override
-    public Item getItemById(long id) {
+    public ItemDto getItemById(long id) {
         Item item = itemRepository.getItemById(id);
-        log.info(GET_ITEM.message(), id);
-        return item;
+        log.info(GET_ITEM, id);
+        return ItemDtoMapper.fromItem(item);
     }
 
     @Override
-    public Collection<Item> getItemsByOwner(long ownerId) {
+    public Collection<ItemDto> getItemsByOwner(long ownerId) {
         Collection<Item> collection = itemRepository.getItemsByOwner(ownerId);
-        log.info(GET_ITEM_LIST.message());
-        return collection;
+        log.info(GET_ITEM_LIST);
+        return ItemDtoMapper.fromItemCollection(collection);
     }
 
     @Override
-    public Collection<Item> getItemBySearch(String text) {
+    public Collection<ItemDto> getItemBySearch(String text) {
         String query = text.toLowerCase();
         if (!query.isBlank()) {
             Collection<Item> collection = itemRepository.getItemBySearch(query);
-            log.info(GET_ITEM_BY_QUERY.message(), text);
-            return collection;
+            log.info(GET_ITEM_BY_QUERY, text);
+            return ItemDtoMapper.fromItemCollection(collection);
         }
         return Collections.emptyList();
     }
