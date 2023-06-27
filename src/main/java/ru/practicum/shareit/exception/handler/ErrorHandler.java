@@ -8,9 +8,9 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.exception.DataConflictException;
-import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.RequestException;
+import ru.practicum.shareit.exception.base.DataConflictException;
+import ru.practicum.shareit.exception.base.NotFoundException;
+import ru.practicum.shareit.exception.base.RequestException;
 
 import java.util.stream.Collectors;
 
