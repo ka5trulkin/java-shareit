@@ -1,17 +1,25 @@
 package ru.practicum.shareit.item.service;
 
-import ru.practicum.shareit.item.dto.ItemDto;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.item.dto.CommentDTO;
+import ru.practicum.shareit.item.dto.ItemDTO;
 
 import java.util.Collection;
 
+@Transactional(readOnly = true)
 public interface ItemService {
-    ItemDto addItem(long ownerId, ItemDto itemDto);
+    @Transactional
+    ItemDTO addItem(Long ownerId, ItemDTO itemDTO);
 
-    ItemDto updateItem(long id, long ownerId, ItemDto itemDto);
+    @Transactional
+    CommentDTO addComment(Long authorId, Long itemId, CommentDTO commentDTO);
 
-    ItemDto getItemById(long id);
+    @Transactional
+    ItemDTO updateItem(Long id, Long ownerId, ItemDTO itemDTO);
 
-    Collection<ItemDto> getItemsByOwner(long ownerId);
+    ItemDTO getItemById(Long id, Long userId);
 
-    Collection<ItemDto> getItemBySearch(String text);
+    <T extends ItemDTO> Collection<T> getItemsByOwner(Long ownerId);
+
+    Collection<ItemDTO> getItemBySearch(String text);
 }
