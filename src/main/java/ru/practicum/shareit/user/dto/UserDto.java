@@ -16,8 +16,7 @@ public class UserDto {
     private Long id;
     @NotBlank(groups = CreateInfo.class, message = NAME_SHOULD_NOT_BE_BLANK)
     private String name;
-    @Email(groups = CreateInfo.class, message = BAD_EMAIL)
-    @Email(groups = UpdateInfo.class, message = BAD_EMAIL)
+    @Email(groups = {CreateInfo.class, UpdateInfo.class}, message = BAD_EMAIL)
     @NotBlank(groups = CreateInfo.class, message = EMAIL_SHOULD_NOT_BE_BLANK)
     private String email;
 }

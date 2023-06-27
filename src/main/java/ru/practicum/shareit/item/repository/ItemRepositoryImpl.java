@@ -73,9 +73,7 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public boolean checkIsOwnerHasItem(long id, long ownerId) {
-        if (ownerItemRelationship.containsKey(ownerId)) {
-            return ownerItemRelationship.get(ownerId).contains(id);
-        }
-        return false;
+        return ownerItemRelationship.containsKey(ownerId)
+                && ownerItemRelationship.get(ownerId).contains(id);
     }
 }
