@@ -2,11 +2,14 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.UserDtoMapper;
+import ru.practicum.shareit.exception.user.UserEmailAlreadyExistException;
+import ru.practicum.shareit.exception.user.UserNotFoundException;
+import ru.practicum.shareit.user.dto.UserDTO;
+import ru.practicum.shareit.user.dto.UserDTOMapper;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.Collection;
 
@@ -18,39 +21,48 @@ import static ru.practicum.shareit.user.UserLogMessage.*;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
-    @Override
-    public UserDto addUser(UserDto userDto) {
-        final User user = UserDtoMapper.toUserWhenCreate(userDto);
-        userRepository.addUser(user);
-        log.info(USER_ADDED, user.getId(), user.getEmail());
-        return UserDtoMapper.fromUser(user);
+    private void saveWithEmailCheck(User user) {
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new UserEmailAlreadyExistException(user.getEmail());
+        }
     }
 
     @Override
-    public UserDto updateUser(long id, UserDto userDto) {
-        User user = userRepository.getUser(id);
-        final User updatedUser = UserDtoMapper.toUserWhenUpdate(user, userDto);
-        userRepository.updateUser(updatedUser);
+    public UserDTO addUser(UserDTO userDTO) {
+        final User user = UserDTOMapper.toUserWhenCreate(userDTO);
+        this.saveWithEmailCheck(user);
+        log.info(USER_ADDED, user.getId(), user.getEmail());
+        return UserDTOMapper.fromUser(user);
+    }
+
+    @Override
+    public UserDTO updateUser(long id, UserDTO userDTO) {
+        final User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        final User updatedUser = UserDTOMapper.toUserWhenUpdate(user, userDTO);
+        this.saveWithEmailCheck(updatedUser);
         log.info(USER_UPDATED, id);
-        return UserDtoMapper.fromUser(updatedUser);
+        return UserDTOMapper.fromUser(updatedUser);
     }
 
     @Override
     public void deleteUser(long id) {
         log.info(USER_DELETED, id);
-        userRepository.deleteUser(id);
+        userRepository.deleteById(id);
     }
 
     @Override
-    public User getUser(long id) {
-        User user = userRepository.getUser(id);
+    public UserDTO getUser(long id) {
+        final UserDTO userDTO = userRepository.findById(id, UserDTO.class)
+                .orElseThrow(() -> new UserNotFoundException(id));
         log.info(GET_USER, id);
-        return user;
+        return userDTO;
     }
 
     @Override
-    public Collection<User> getAllUsers() {
+    public Collection<UserDTO> getAllUsers() {
         log.info(GET_USER_LIST);
-        return userRepository.getAllUsers();
+        return userRepository.findAllBy(UserDTO.class);
     }
 }
