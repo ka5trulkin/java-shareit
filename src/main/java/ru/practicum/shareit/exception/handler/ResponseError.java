@@ -12,12 +12,12 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ResponseError {
     private final HttpStatus status;
-    private final String message;
+    private final String error;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = PatternsApp.DATE_TIME)
     private final LocalDateTime time = LocalDateTime.now();
 
-    public ResponseError(String message, HttpStatus status) {
-        this.message = message;
+    public ResponseError(String error, HttpStatus status) {
+        this.error = error;
         this.status = status;
     }
 }
