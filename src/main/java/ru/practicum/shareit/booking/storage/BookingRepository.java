@@ -1,8 +1,8 @@
 package ru.practicum.shareit.booking.storage;
 
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.dto.BookingView;
 import ru.practicum.shareit.booking.model.Booking;
@@ -17,63 +17,69 @@ import static ru.practicum.shareit.booking.model.Status.APPROVED;
 
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
-    @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner where b.booker.id = ?1")
-    <T> List<T> findByBookerId(Long id, Sort sort, Class<T> type);
+    @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
+            "where b.booker.id = :id order by b.start DESC")
+    List<BookingView> findByBookerId(@Param("id") Long id);
 
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
-            "where b.booker.id = ?1 and b.start < ?2 and b.end > ?3")
-    <T> List<T> findByBookerIdCurrentTime(Long id, LocalDateTime start, LocalDateTime end, Sort sort, Class<T> type);
+            "where b.booker.id = :id and b.start < :start and b.end > :end order by b.start DESC")
+    List<BookingView> findByBookerIdCurrentTime(@Param("id") Long id,
+                                                @Param("start") LocalDateTime start,
+                                                @Param("end") LocalDateTime end);
 
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
-            "where b.booker.id = ?1 and b.end < ?2")
-    <T> List<T> findByBookerIdPastTime(Long id, LocalDateTime end, Sort sort, Class<T> type);
+            "where b.booker.id = :id and b.end < :end order by b.start DESC")
+    List<BookingView> findByBookerIdPastTime(@Param("id") Long id, @Param("end") LocalDateTime end);
 
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
-            "where b.booker.id = ?1 and b.start > ?2")
-    <T> List<T> findByBookerIdFutureTime(Long id, LocalDateTime start, Sort sort, Class<T> type);
+            "where b.booker.id = :id and b.start > :start order by b.start DESC")
+    List<BookingView> findByBookerIdFutureTime(@Param("id") Long id, @Param("start") LocalDateTime start);
 
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
-            "where b.booker.id = ?1 and b.status = ?2")
-    <T> List<T> findByBookerIdAndStatus(Long id, Status status, Sort sort, Class<T> type);
+            "where b.booker.id = :id and b.status = :status order by b.start DESC")
+    List<BookingView> findByBookerIdAndStatus(@Param("id") Long id, @Param("status") Status status);
 
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
-            "where b.item.owner.id = ?1")
-    <T> List<T> findByOwnerId(Long id, Sort sort, Class<T> type);
+            "where b.item.owner.id = :id order by b.start DESC")
+    List<BookingView> findByOwnerId(@Param("id") Long id);
 
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
-            "where b.item.owner.id = ?1 and b.start < ?2 and b.end > ?3")
-    <T> List<T> findByOwnerIdCurrentTime(Long id, LocalDateTime start, LocalDateTime end, Sort sort, Class<T> type);
+            "where b.item.owner.id = :id and b.start < :start and b.end > :end order by b.start DESC")
+    List<BookingView> findByOwnerIdCurrentTime(@Param("id") Long id,
+                                               @Param("start") LocalDateTime start,
+                                               @Param("end") LocalDateTime end);
 
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
-            "where b.item.owner.id = ?1 and b.end < ?2")
-    <T> List<T> findByOwnerIdPastTime(Long id, LocalDateTime end, Sort sort, Class<T> type);
+            "where b.item.owner.id = :id and b.end < :end order by b.start DESC")
+    List<BookingView> findByOwnerIdPastTime(@Param("id") Long id, @Param("end") LocalDateTime end);
 
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
-            "where b.item.owner.id = ?1 and b.start > ?2")
-    <T> List<T> findByOwnerIdFutureTime(Long id, LocalDateTime start, Sort sort, Class<T> type);
+            "where b.item.owner.id = :id and b.start > :start order by b.start DESC")
+    List<BookingView> findByOwnerIdFutureTime(@Param("id") Long id, @Param("start") LocalDateTime start);
 
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
-            "where b.item.owner.id = ?1 and b.status = ?2")
-    <T> List<T> findByOwnerIdAndStatus(Long id, Status status, Sort sort, Class<T> type);
+            "where b.item.owner.id = :id and b.status = :status order by b.start DESC")
+    List<BookingView> findByOwnerIdAndStatus(@Param("id") Long id, @Param("status") Status status);
 
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
-            "where b.item.id in ?1 and b.item.owner.id = ?2")
-    <T> List<T> findByOwnerItems(Collection<Long> itemId, Long ownerId, Class<T> type);
+            "where b.item.id in :itemIds and b.item.owner.id = :ownerId")
+    List<BookingView> findByOwnerItems(@Param("itemIds") Collection<Long> itemId, @Param("ownerId") Long ownerId);
 
-    <T> Optional<T> findTop1ByItem_IdAndItem_Owner_IdAndStartBeforeAndStatusOrderByEndDesc(Long itemId, Long ownerId,
-                                                                                         LocalDateTime end, Status status,
-                                                                                         Class<T> type);
+    @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner where b.item.id in :ids")
+    List<BookingView> findByItem_IdIn(@Param("ids") Collection<Long> ids);
 
-    default <T> Optional<T> getLastBooking(Long itemId, Long ownerId, LocalDateTime end, Class<T> type) {
-        return findTop1ByItem_IdAndItem_Owner_IdAndStartBeforeAndStatusOrderByEndDesc(itemId, ownerId, end, APPROVED, type);
+    Optional<BookingView> findTop1ByItem_IdAndItem_Owner_IdAndStartBeforeAndStatusOrderByEndDesc(Long itemId, Long ownerId,
+                                                                                           LocalDateTime end, Status status);
+
+    default Optional<BookingView> getLastBooking(Long itemId, Long ownerId, LocalDateTime end) {
+        return findTop1ByItem_IdAndItem_Owner_IdAndStartBeforeAndStatusOrderByEndDesc(itemId, ownerId, end, APPROVED);
     }
 
-    <T> Optional<T> findTop1ByItem_IdAndItem_Owner_IdAndStartAfterAndStatusOrderByStart(Long itemId, Long ownerId,
-                                                                                        LocalDateTime start, Status status,
-                                                                                        Class<T> type);
+    Optional<BookingView> findTop1ByItem_IdAndItem_Owner_IdAndStartAfterAndStatusOrderByStart(Long itemId, Long ownerId,
+                                                                                        LocalDateTime start, Status status);
 
-    default <T> Optional<T> getNextBooking(Long itemId, Long ownerId, LocalDateTime start, Class<T> type) {
-        return findTop1ByItem_IdAndItem_Owner_IdAndStartAfterAndStatusOrderByStart(itemId, ownerId, start, APPROVED, type);
+    default Optional<BookingView> getNextBooking(Long itemId, Long ownerId, LocalDateTime start) {
+        return findTop1ByItem_IdAndItem_Owner_IdAndStartAfterAndStatusOrderByStart(itemId, ownerId, start, APPROVED);
     }
 
     Optional<BookingView> findFirstByBooker_IdAndItem_IdAndEndBeforeAndStatus(Long bookerId, Long itemId,

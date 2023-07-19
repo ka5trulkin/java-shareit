@@ -1,7 +1,7 @@
 package ru.practicum.shareit.user.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.service.CreateInfo;
@@ -17,12 +17,9 @@ import static ru.practicum.shareit.user.UserLogMessage.*;
 @Slf4j
 @RestController
 @RequestMapping(path = "/users")
+@RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-
-    public UserController(@Qualifier(value = "userServiceImpl") UserService userService) {
-        this.userService = userService;
-    }
 
     @PostMapping
     @ResponseStatus(CREATED)

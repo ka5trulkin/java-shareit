@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.user.UserEmailAlreadyExistException;
 import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.user.dto.UserDTO;
@@ -18,6 +19,7 @@ import static ru.practicum.shareit.user.UserLogMessage.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
@@ -30,6 +32,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDTO addUser(UserDTO userDTO) {
         final User user = UserDTOMapper.toUserWhenCreate(userDTO);
         this.saveWithEmailCheck(user);
@@ -38,6 +41,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDTO updateUser(long id, UserDTO userDTO) {
         final User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         final User updatedUser = UserDTOMapper.toUserWhenUpdate(user, userDTO);
@@ -47,6 +51,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(long id) {
         log.info(USER_DELETED, id);
         userRepository.deleteById(id);
@@ -54,15 +59,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO getUser(long id) {
-        final UserDTO userDTO = userRepository.findById(id, UserDTO.class)
+        final User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         log.info(GET_USER, id);
-        return userDTO;
+        return UserDTOMapper.fromUser(user);
     }
 
     @Override
     public Collection<UserDTO> getAllUsers() {
         log.info(GET_USER_LIST);
-        return userRepository.findAllBy(UserDTO.class);
+        return userRepository.findAllBy();
     }
 }

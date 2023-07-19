@@ -2,8 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDTO;
 import ru.practicum.shareit.booking.dto.BookingDTOMapper;
 import ru.practicum.shareit.booking.dto.BookingOutDTO;
@@ -15,7 +15,6 @@ import ru.practicum.shareit.exception.item.ItemNotFoundException;
 import ru.practicum.shareit.exception.user.UserNotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
-import ru.practicum.shareit.user.dto.UserIdDTO;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
@@ -26,12 +25,11 @@ import java.util.Objects;
 import static ru.practicum.shareit.booking.BookingLogMessage.*;
 import static ru.practicum.shareit.booking.model.Status.REJECTED;
 import static ru.practicum.shareit.booking.model.Status.WAITING;
-import static ru.practicum.shareit.booking.service.UserType.BOOKER;
-import static ru.practicum.shareit.booking.service.UserType.OWNER;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
@@ -56,15 +54,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkWhetherOwnerOrBooker(Long userId, Booking booking) {
-        if (Objects.equals(booking.getOwnerId(), userId)
-                || Objects.equals(booking.getBookerId(), userId)) {
-            return;
+        if (!Objects.equals(booking.getOwnerId(), userId)
+                && !Objects.equals(booking.getBookerId(), userId)) {
+            throw new BookingNotFoundException(booking.getId());
         }
-        throw new BookingNotFoundException(booking.getId());
     }
 
     private void checkUserExists(Long userId) {
-        userRepository.findById(userId, UserIdDTO.class).orElseThrow(() -> new UserNotFoundException(userId));
+        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     private void checkBookingStatus(Booking booking) {
@@ -73,66 +70,66 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private Collection<BookingOutDTO> getOutDTOCollectionByStateParam(Long userId, String stateParam, UserType type) {
-        final StateParam state;
-        try {
-            state = StateParam.valueOf(stateParam.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new UnsupportedStatusException(stateParam);
-        }
-        final Collection<BookingView> list;
+    private Collection<BookingOutDTO> getOutDTOListByStateParam(Long userId, String stateParam) {
+        final StateParam state = StateParam.stateOf(stateParam);
+        final Collection<BookingView> bookingViews;
         final LocalDateTime time = LocalDateTime.now();
-        String bookingFieldStart = "start";
-        final Sort sort = Sort.by(bookingFieldStart).descending();
-        switch (type) {
-            case BOOKER:
-                switch (state) {
-                    case ALL:
-                        list = bookingRepository.findByBookerId(userId, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                    case CURRENT:
-                        list = bookingRepository.findByBookerIdCurrentTime(userId, time, time, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                    case PAST:
-                        list = bookingRepository.findByBookerIdPastTime(userId, time, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                    case FUTURE:
-                        list = bookingRepository.findByBookerIdFutureTime(userId, time, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                    case WAITING:
-                        list = bookingRepository.findByBookerIdAndStatus(userId, WAITING, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                    case REJECTED:
-                        list = bookingRepository.findByBookerIdAndStatus(userId, REJECTED, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                }
-            case OWNER:
-                switch (state) {
-                    case ALL:
-                        list = bookingRepository.findByOwnerId(userId, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                    case CURRENT:
-                        list = bookingRepository.findByOwnerIdCurrentTime(userId, time, time, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                    case PAST:
-                        list = bookingRepository.findByOwnerIdPastTime(userId, time, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                    case FUTURE:
-                        list = bookingRepository.findByOwnerIdFutureTime(userId, time, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                    case WAITING:
-                        list = bookingRepository.findByOwnerIdAndStatus(userId, WAITING, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                    case REJECTED:
-                        list = bookingRepository.findByOwnerIdAndStatus(userId, REJECTED, sort, BookingView.class);
-                        return BookingDTOMapper.fromCollection(list);
-                }
+        switch (state) {
+            case ALL:
+                bookingViews = bookingRepository.findByBookerId(userId);
+                break;
+            case CURRENT:
+                bookingViews = bookingRepository.findByBookerIdCurrentTime(userId, time, time);
+                break;
+            case PAST:
+                bookingViews = bookingRepository.findByBookerIdPastTime(userId, time);
+                break;
+            case FUTURE:
+                bookingViews = bookingRepository.findByBookerIdFutureTime(userId, time);
+                break;
+            case WAITING:
+                bookingViews = bookingRepository.findByBookerIdAndStatus(userId, WAITING);
+                break;
+            case REJECTED:
+                bookingViews = bookingRepository.findByBookerIdAndStatus(userId, REJECTED);
+                break;
             default:
                 throw new InternalError();
         }
+        return BookingDTOMapper.fromCollection(bookingViews);
+    }
+
+    private Collection<BookingOutDTO> getOutDTOListByStateParamToOwner(Long userId, String stateParam) {
+        final StateParam state = StateParam.stateOf(stateParam);
+        final Collection<BookingView> bookingViews;
+        final LocalDateTime time = LocalDateTime.now();
+        switch (state) {
+            case ALL:
+                bookingViews = bookingRepository.findByOwnerId(userId);
+                break;
+            case CURRENT:
+                bookingViews = bookingRepository.findByOwnerIdCurrentTime(userId, time, time);
+                break;
+            case PAST:
+                bookingViews = bookingRepository.findByOwnerIdPastTime(userId, time);
+                break;
+            case FUTURE:
+                bookingViews = bookingRepository.findByOwnerIdFutureTime(userId, time);
+                break;
+            case WAITING:
+                bookingViews = bookingRepository.findByOwnerIdAndStatus(userId, WAITING);
+                break;
+            case REJECTED:
+                bookingViews = bookingRepository.findByOwnerIdAndStatus(userId, REJECTED);
+                break;
+            default:
+                throw new InternalError();
+        }
+        return BookingDTOMapper.fromCollection(bookingViews);
     }
 
     @Override
+    @Transactional
     public BookingOutDTO addBooking(Long bookerId, BookingDTO bookingDTO) {
         final User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new UserNotFoundException(bookerId));
@@ -147,6 +144,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingOutDTO approvalBooking(Long ownerId, Long bookingId, boolean isApproved) {
         final Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
@@ -171,13 +169,13 @@ public class BookingServiceImpl implements BookingService {
     public Collection<BookingOutDTO> getBookingsByBooker(Long bookerId, String stateParam) {
         this.checkUserExists(bookerId);
         log.info(GET_BOOKING_LIST_BY_BOOKER, bookerId);
-        return this.getOutDTOCollectionByStateParam(bookerId, stateParam, BOOKER);
+        return this.getOutDTOListByStateParam(bookerId, stateParam);
     }
 
     @Override
     public Collection<BookingOutDTO> getBookingsByOwner(Long ownerId, String stateParam) {
         this.checkUserExists(ownerId);
-        Collection<BookingOutDTO> list = this.getOutDTOCollectionByStateParam(ownerId, stateParam, OWNER);
+        Collection<BookingOutDTO> list = this.getOutDTOListByStateParamToOwner(ownerId, stateParam);
         if (list.isEmpty()) {
             throw new OwnerHasNoItemsException(ownerId);
         }

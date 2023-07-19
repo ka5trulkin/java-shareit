@@ -12,4 +12,6 @@ public interface CommentView {
     LocalDateTime getCreated();
 
     UserView getAuthor();
+
+    ItemView getItem();
 }

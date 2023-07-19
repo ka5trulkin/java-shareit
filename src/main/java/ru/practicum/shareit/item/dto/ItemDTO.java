@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import ru.practicum.shareit.service.CreateInfo;
+import ru.practicum.shareit.service.UpdateInfo;
+import ru.practicum.shareit.validation.ItemUpdate;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -13,6 +15,7 @@ import static ru.practicum.shareit.service.MessagesApp.*;
 @Builder
 @Data
 @AllArgsConstructor
+@ItemUpdate(groups = UpdateInfo.class)
 public class ItemDTO {
     private Long id;
     private Long ownerId;

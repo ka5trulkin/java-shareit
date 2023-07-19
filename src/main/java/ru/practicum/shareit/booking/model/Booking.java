@@ -1,23 +1,24 @@
 package ru.practicum.shareit.booking.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import org.hibernate.Hibernate;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import static ru.practicum.shareit.booking.model.Status.APPROVED;
 import static ru.practicum.shareit.booking.model.Status.REJECTED;
 
 @Entity
 @Table(name = "bookings")
-@Data
+@Getter
+@Setter
+@ToString
 @Builder
-@RequiredArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
 public class Booking {
     @Id
@@ -29,9 +30,11 @@ public class Booking {
     @Column(name = "ending")
     private LocalDateTime end;
     @ManyToOne
+    @ToString.Exclude
     @JoinColumn(name = "booker_id", referencedColumnName = "id")
     private User booker;
     @ManyToOne
+    @ToString.Exclude
     @JoinColumn(name = "item_id", referencedColumnName = "id")
     private Item item;
     @Column(name = "status")
@@ -60,5 +63,18 @@ public class Booking {
         } else {
             this.setStatus(REJECTED);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Booking booking = (Booking) o;
+        return getId() != null && Objects.equals(getId(), booking.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

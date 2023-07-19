@@ -1,7 +1,7 @@
 package ru.practicum.shareit.item.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDTO;
@@ -9,6 +9,7 @@ import ru.practicum.shareit.item.dto.ItemDTO;
 import ru.practicum.shareit.item.dto.ItemWithBookingInfoDTO;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.service.CreateInfo;
+import ru.practicum.shareit.service.UpdateInfo;
 
 import java.util.Collection;
 
@@ -16,16 +17,12 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static ru.practicum.shareit.item.ItemLogMessage.*;
 import static ru.practicum.shareit.service.PatternsApp.X_SHARER_USER_ID;
 
-
 @Slf4j
 @RestController
 @RequestMapping("/items")
+@RequiredArgsConstructor
 public class ItemController {
     private final ItemService itemService;
-
-    public ItemController(@Qualifier(value = "itemServiceImpl") ItemService itemService) {
-        this.itemService = itemService;
-    }
 
     @PostMapping
     @ResponseStatus(CREATED)
@@ -37,7 +34,8 @@ public class ItemController {
 
     @PatchMapping("/{id}")
     ItemDTO updateItem(@PathVariable Long id,
-                       @RequestHeader(X_SHARER_USER_ID) Long ownerId, @RequestBody ItemDTO itemDTO) {
+                       @RequestHeader(X_SHARER_USER_ID) Long ownerId,
+                       @Validated(UpdateInfo.class) @RequestBody ItemDTO itemDTO) {
         log.info(REQUEST_UPDATE_ITEM, id);
         return itemService.updateItem(id, ownerId, itemDTO);
     }
@@ -48,7 +46,6 @@ public class ItemController {
         return itemService.getItemById(id, userId);
     }
 
-    // есть вопросик по поводу возвращаемого типа
     @GetMapping
     Collection<ItemWithBookingInfoDTO> getItemsByOwner(@RequestHeader(X_SHARER_USER_ID) Long ownerId) {
         log.info(REQUEST_GET_ITEM_LIST);
@@ -56,9 +53,9 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    Collection<ItemDTO> getItemBySearch(@RequestParam String text) {
+    Collection<ItemWithBookingInfoDTO> getItemBySearch(@RequestParam String text) {
         log.info(REQUEST_GET_ITEM_BY_QUERY, text);
-        return itemService.getItemBySearch(text);
+        return itemService.getItemsBySearch(text);
     }
 
     @PostMapping("/{itemId}/comment")

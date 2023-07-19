@@ -52,12 +52,6 @@ public class ItemDTOMapper {
                 .build();
     }
 
-    public Collection<ItemDTO> fromItemCollection(Collection<Item> items) {
-        return items.stream()
-                .map(ItemDTOMapper::fromItem)
-                .collect(Collectors.toList());
-    }
-
     public ItemWithBookingInfoDTO fromBookingView(ItemDTO itemDTO, Collection<CommentDTO> comments) {
         return new ItemWithBookingInfoDTO(
                 itemDTO.getId(),
@@ -68,18 +62,6 @@ public class ItemDTOMapper {
                 null,
                 null,
                 comments
-        );
-    }
-
-    public ItemWithBookingInfoDTO fromBookingView(ItemDTO itemDTO, BookingView lastView, BookingView nextView) {
-        return new ItemWithBookingInfoDTO(
-                itemDTO.getId(),
-                itemDTO.getOwnerId(),
-                itemDTO.getName(),
-                itemDTO.getDescription(),
-                itemDTO.getAvailable(),
-                getBookingOrNull(lastView),
-                getBookingOrNull(nextView)
         );
     }
 
@@ -98,23 +80,28 @@ public class ItemDTOMapper {
     }
 
     public Collection<ItemWithBookingInfoDTO> fromBookingViewCollection(Collection<ItemDTO> itemDTO,
-                                                                        Collection<BookingView> views) {
+                                                                        Collection<BookingView> bookings,
+                                                                        Collection<CommentView> comments) {
         final LocalDateTime time = LocalDateTime.now();
         return itemDTO.stream()
                 .map(item -> fromBookingView(
                         item,
-                        views.stream()
+                        bookings.stream()
                                 .filter(view -> view.getEnd().isBefore(time))
                                 .filter(last -> Objects.equals(item.getId(), last.getItem().getId()))
                                 .min(Comparator.comparing(view -> view.getEnd() == null ? null : view.getEnd(),
                                         Comparator.nullsLast(Comparator.naturalOrder())))
                                 .orElse(null),
-                        views.stream()
+                        bookings.stream()
                                 .filter(view -> view.getStart().isAfter(time))
                                 .filter(next -> Objects.equals(item.getId(), next.getItem().getId()))
                                 .min(Comparator.comparing(view -> view.getStart() == null ? null : view.getStart(),
                                         Comparator.nullsLast(Comparator.naturalOrder())))
-                                .orElse(null)
+                                .orElse(null),
+                        CommentDTOMapper.fromViewList(
+                                comments.stream()
+                                        .filter(view -> Objects.equals(item.getId(), view.getItem().getId()))
+                                        .collect(Collectors.toList()))
                 ))
                 .sorted(Comparator.comparing(
                         item -> item.getNextBooking() == null ? null : item.getNextBooking().getStart(),

@@ -7,6 +7,7 @@ public class ExceptionMessage {
     public static final String USER_EMAIL_ALREADY_EXIST = "Пользователь с email:'%s' уже существует";
     public static final String ITEM_IS_NOT_AVAILABLE = "'%s' сейчас не доступен(на)";
     public static final String BAD_BOOKING_TIME = "Указана некорректная дата бронирования";
+    public static final String BAD_ITEM_UPDATE = "Все поля обновляемой вещи пустые";
     public static final String BAD_COMMENT_BY_AUTHOR_OR_ITEM = "Ошибка комментария. Пользователь или вещь не найдены";
     public static final String BOOKING_NOT_FOUND = "Бронирование ID:'%s' не найдено";
     public static final String NOT_OWNER_ITEM = "Пользователь ID:'%s' не является владельцем вещи ID:'%s'";
