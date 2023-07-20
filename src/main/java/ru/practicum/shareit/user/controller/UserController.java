@@ -6,8 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.service.CreateInfo;
 import ru.practicum.shareit.service.UpdateInfo;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDTO;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Collection;
@@ -15,9 +14,6 @@ import java.util.Collection;
 import static org.springframework.http.HttpStatus.CREATED;
 import static ru.practicum.shareit.user.UserLogMessage.*;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Slf4j
 @RestController
 @RequestMapping(path = "/users")
@@ -27,20 +23,20 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(CREATED)
-    UserDto createUser(@Validated(CreateInfo.class) @RequestBody UserDto userDto) {
-        log.info(REQUEST_ADD_USER, userDto.getEmail());
-        return userService.addUser(userDto);
+    UserDTO createUser(@Validated(CreateInfo.class) @RequestBody UserDTO userDTO) {
+        log.info(REQUEST_ADD_USER, userDTO.getEmail());
+        return userService.addUser(userDTO);
     }
 
     @PatchMapping("/{id}")
-    UserDto updateUser(@PathVariable Long id,
-                    @Validated(UpdateInfo.class) @RequestBody UserDto userDto) {
+    UserDTO updateUser(@PathVariable Long id,
+                       @Validated(UpdateInfo.class) @RequestBody UserDTO userDTO) {
         log.info(REQUEST_UPDATE_USER, id);
-        return userService.updateUser(id, userDto);
+        return userService.updateUser(id, userDTO);
     }
 
     @GetMapping("/{id}")
-    User getUser(@PathVariable Long id) {
+    UserDTO getUser(@PathVariable Long id) {
         log.info(REQUEST_GET_USER, id);
         return userService.getUser(id);
     }
@@ -52,7 +48,7 @@ public class UserController {
     }
 
     @GetMapping
-    Collection<User> getAllUsers() {
+    Collection<UserDTO> getAllUsers() {
         log.info(REQUEST_GET_USER_LIST);
         return userService.getAllUsers();
     }
