@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.model;
 
 import lombok.*;
 import org.hibernate.Hibernate;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -30,6 +31,18 @@ public class Item {
     private String description;
     @Column(name = "is_available")
     private boolean available;
+    @ManyToOne
+    @ToString.Exclude
+    @JoinColumn(name = "request_id", referencedColumnName = "id")
+    private ItemRequest request;
+
+    public Long getIdOwner() {
+        return owner.getId();
+    }
+
+    public Long getRequestsId() {
+        return request != null ? request.getId() : null;
+    }
 
     @Override
     public boolean equals(Object o) {
