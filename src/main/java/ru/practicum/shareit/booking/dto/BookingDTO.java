@@ -4,19 +4,21 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.service.CreateInfo;
-import ru.practicum.shareit.service.PatternsApp;
-import ru.practicum.shareit.validation.BookingTime;
+import lombok.NoArgsConstructor;
+import ru.practicum.shareit.utils.CreateInfo;
+import ru.practicum.shareit.utils.PatternsApp;
+import ru.practicum.shareit.utils.validation.BookingTime;
 
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.time.LocalDateTime;
 
-import static ru.practicum.shareit.service.MessagesApp.*;
+import static ru.practicum.shareit.utils.validation.ValidationMessages.*;
 
 @Data
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 @BookingTime(groups = CreateInfo.class)
 public class BookingDTO {
