@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.service.CreateInfo;
-import ru.practicum.shareit.service.UpdateInfo;
+import ru.practicum.shareit.utils.CreateInfo;
+import ru.practicum.shareit.utils.UpdateInfo;
 import ru.practicum.shareit.user.dto.UserDTO;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.util.Collection;
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static ru.practicum.shareit.user.UserLogMessage.*;
@@ -48,7 +48,7 @@ public class UserController {
     }
 
     @GetMapping
-    Collection<UserDTO> getAllUsers() {
+    List<UserDTO> getAllUsers() {
         log.info(REQUEST_GET_USER_LIST);
         return userService.getAllUsers();
     }
