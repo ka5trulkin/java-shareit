@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingView;
@@ -9,11 +10,18 @@ import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exception.base.RequestException;
 import ru.practicum.shareit.exception.item.ItemNotFoundException;
 import ru.practicum.shareit.exception.item.OwnerNotFoundException;
-import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.exception.item_request.ItemRequestNotFoundException;
+import ru.practicum.shareit.item.dto.comment.CommentDTO;
+import ru.practicum.shareit.item.dto.comment.CommentDTOMapper;
+import ru.practicum.shareit.item.dto.item.ItemDTO;
+import ru.practicum.shareit.item.dto.item.ItemDTOMapper;
+import ru.practicum.shareit.item.dto.comment.CommentView;
+import ru.practicum.shareit.item.dto.item.ItemOut;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
+import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
@@ -35,16 +43,25 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     private void checkUserExists(Long userId) {
-        userRepository.findById(userId).orElseThrow(() -> new OwnerNotFoundException(userId));
+        if (!userRepository.existsById(userId)) {
+            throw new OwnerNotFoundException(userId);
+        }
+    }
+
+    private void checkRequestExists(ItemDTO itemDTO) {
+        if ((itemDTO.getRequestId() != null) && (!itemRequestRepository.existsById(itemDTO.getRequestId()))) {
+            throw new ItemRequestNotFoundException(itemDTO.getRequestId());
+        }
     }
 
     private boolean isOwner(Long userId, ItemDTO item) {
         return Objects.equals(userId, item.getOwnerId());
     }
 
-    private ItemWithBookingInfoDTO getItemToOwner(Long id, Long ownerId, ItemDTO item, Collection<CommentDTO> comments) {
+    private ItemOut getItemToOwner(Long id, Long ownerId, ItemDTO item, List<CommentDTO> comments) {
         final LocalDateTime time = LocalDateTime.now();
         final BookingView lastBooking = bookingRepository.getLastBooking(id, ownerId, time)
                 .orElse(null);
@@ -53,13 +70,13 @@ public class ItemServiceImpl implements ItemService {
         return ItemDTOMapper.fromBookingView(item, lastBooking, nextBooking, comments);
     }
 
-    private ItemWithBookingInfoDTO getItemToUser(ItemDTO item, Collection<CommentDTO> comments) {
+    private ItemOut getItemToUser(ItemDTO item, List<CommentDTO> comments) {
         return ItemDTOMapper.fromBookingView(item, comments);
     }
 
-    private Collection<ItemWithBookingInfoDTO> getOutDTOList(Collection<ItemDTO> items) {
+    private List<ItemOut> getOutDTOList(Collection<ItemDTO> items) {
         final List<Long> itemsId = items.stream().map(ItemDTO::getId).collect(Collectors.toList());
-        final List<BookingView> bookings = bookingRepository.findByItem_IdIn(itemsId);
+        final List<BookingView> bookings = bookingRepository.findByItemIdIn(itemsId);
         final List<CommentView> comments = commentRepository.findByItem_IdIn(itemsId);
         return ItemDTOMapper.fromBookingViewCollection(items, bookings, comments);
     }
@@ -68,8 +85,9 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemDTO addItem(Long ownerId, ItemDTO itemDTO) {
         this.checkUserExists(ownerId);
-        final Item item = ItemDTOMapper.toItem(ownerId, itemDTO);
-        itemRepository.save(item);
+        this.checkRequestExists(itemDTO);
+        Item item = ItemDTOMapper.toItem(ownerId, itemDTO);
+        item = itemRepository.save(item);
         log.info(ITEM_ADDED, item.getId(), item.getName());
         return ItemDTOMapper.fromItem(item);
     }
@@ -90,39 +108,38 @@ public class ItemServiceImpl implements ItemService {
     public ItemDTO updateItem(Long id, Long ownerId, ItemDTO itemDTO) {
         final Item item = itemRepository.findByIdAndOwnerId(id, ownerId)
                 .orElseThrow(() -> new ItemNotFoundException(id));
-        final Item updatedItem = ItemDTOMapper.toItemWhenUpdate(item, itemDTO);
-        itemRepository.save(updatedItem);
+        Item updatedItem = ItemDTOMapper.toItemWhenUpdate(item, itemDTO);
+        updatedItem = itemRepository.save(updatedItem);
         log.info(ITEM_UPDATED, updatedItem.getId());
         return ItemDTOMapper.fromItem(updatedItem);
     }
 
     @Override
-    public ItemDTO getItemById(Long id, Long userId) {
+    public ItemOut getItemById(Long id, Long userId) {
         final Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException(id));
         final ItemDTO itemDTO = ItemDTOMapper.fromItem(item);
-        Collection<CommentView> commentViews = commentRepository.findByItem_Id(itemDTO.getId());
-        Collection<CommentDTO> comments = CommentDTOMapper.fromViewList(commentViews);
+        final List<CommentView> commentViews = commentRepository.findByItem_Id(itemDTO.getId());
+        final List<CommentDTO> comments = CommentDTOMapper.fromViewList(commentViews);
         log.info(GET_ITEM, id);
         return isOwner(userId, itemDTO) ? this.getItemToOwner(id, userId, itemDTO, comments) : this.getItemToUser(itemDTO, comments);
     }
 
     @Override
-    public Collection<ItemWithBookingInfoDTO> getItemsByOwner(Long ownerId) {
-        final Collection<ItemDTO> items = itemRepository.findAllByOwnerId(ownerId);
-        final Collection<ItemWithBookingInfoDTO> outList = this.getOutDTOList(items);
+    public List<ItemOut> getItemsByOwner(Long ownerId, Integer from, Integer size) {
+        final List<ItemDTO> items = itemRepository.findByOwnerId(ownerId, PageRequest.of((from / size), size));
         log.info(GET_ITEM_LIST);
-        return outList;
+        return this.getOutDTOList(items);
     }
 
     @Override
-    public Collection<ItemWithBookingInfoDTO> getItemsBySearch(String text) {
-        if (!text.isBlank()) {
-            final Collection<ItemDTO> items = itemRepository.findByNameOrDescription(text, text);
-            final Collection<ItemWithBookingInfoDTO> outList = this.getOutDTOList(items);
-            log.info(GET_ITEM_BY_QUERY, text);
-            return outList;
+    public List<ItemOut> getItemsBySearch(String text, Integer from, Integer size) {
+        if (text == null || text.isBlank()) {
+            log.info(GET_ITEM_LIST_BY_QUERY, text);
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+        final List<ItemDTO> items = itemRepository.findByNameOrDescription(text, PageRequest.of((from / size), size));
+        log.info(GET_ITEM_LIST_BY_QUERY, text);
+        return this.getOutDTOList(items);
     }
 }

@@ -1,5 +1,8 @@
 package ru.practicum.shareit.booking;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class BookingLogMessage {
     public static final String REQUEST_ADD_BOOKING = "Запрос на бронирование вещи ID:'{}'";
     public static final String REQUEST_APPROVAL_BOOKING = "Запрос на изменение статуса бронирования ID:'{}'";
