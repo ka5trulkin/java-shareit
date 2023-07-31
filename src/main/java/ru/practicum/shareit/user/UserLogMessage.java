@@ -1,5 +1,8 @@
 package ru.practicum.shareit.user;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class UserLogMessage {
     public static final String REQUEST_ADD_USER = "Запрос на добавление пользователя Email:'{}'";
     public static final String REQUEST_DELETE_USER = "Запрос на удаление пользователя ID:'{}'";
