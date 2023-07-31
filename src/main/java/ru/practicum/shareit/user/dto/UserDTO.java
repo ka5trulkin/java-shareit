@@ -3,13 +3,13 @@ package ru.practicum.shareit.user.dto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.service.CreateInfo;
-import ru.practicum.shareit.service.UpdateInfo;
+import ru.practicum.shareit.utils.CreateInfo;
+import ru.practicum.shareit.utils.UpdateInfo;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 
-import static ru.practicum.shareit.service.MessagesApp.*;
+import static ru.practicum.shareit.utils.validation.ValidationMessages.*;
 
 @Data
 @Builder

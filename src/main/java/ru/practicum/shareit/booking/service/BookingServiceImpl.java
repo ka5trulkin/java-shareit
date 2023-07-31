@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDTO;
@@ -9,6 +11,7 @@ import ru.practicum.shareit.booking.dto.BookingDTOMapper;
 import ru.practicum.shareit.booking.dto.BookingOutDTO;
 import ru.practicum.shareit.booking.dto.BookingView;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.StateParam;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exception.booking.*;
 import ru.practicum.shareit.exception.item.ItemNotFoundException;
@@ -19,7 +22,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import static ru.practicum.shareit.booking.BookingLogMessage.*;
@@ -35,7 +38,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
-    private void checkIsAvailable(Booking booking) {
+    private void checkIsAvailableItem(Booking booking) {
         if (!booking.getItem().isAvailable()) {
             throw new ItemIsNotAvailableException(booking.getItemName());
         }
@@ -61,7 +64,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkUserExists(Long userId) {
-        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        if (!userRepository.existsById(userId)) {
+            throw new UserNotFoundException(userId);
+        }
     }
 
     private void checkBookingStatus(Booking booking) {
@@ -70,28 +75,29 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private Collection<BookingOutDTO> getOutDTOListByStateParam(Long userId, String stateParam) {
+    private List<BookingOutDTO> getOutDTOListByStateParam(Long userId, String stateParam, int from, int size) {
         final StateParam state = StateParam.stateOf(stateParam);
-        final Collection<BookingView> bookingViews;
+        final List<BookingView> bookingViews;
         final LocalDateTime time = LocalDateTime.now();
+        final Pageable pageable = PageRequest.of((from / size), size);
         switch (state) {
             case ALL:
-                bookingViews = bookingRepository.findByBookerId(userId);
+                bookingViews = bookingRepository.findByBookerId(userId, pageable);
                 break;
             case CURRENT:
-                bookingViews = bookingRepository.findByBookerIdCurrentTime(userId, time, time);
+                bookingViews = bookingRepository.findByBookerIdCurrentTime(userId, time, pageable);
                 break;
             case PAST:
-                bookingViews = bookingRepository.findByBookerIdPastTime(userId, time);
+                bookingViews = bookingRepository.findByBookerIdPastTime(userId, time, pageable);
                 break;
             case FUTURE:
-                bookingViews = bookingRepository.findByBookerIdFutureTime(userId, time);
+                bookingViews = bookingRepository.findByBookerIdFutureTime(userId, time, pageable);
                 break;
             case WAITING:
-                bookingViews = bookingRepository.findByBookerIdAndStatus(userId, WAITING);
+                bookingViews = bookingRepository.findByBookerIdAndStatus(userId, WAITING, pageable);
                 break;
             case REJECTED:
-                bookingViews = bookingRepository.findByBookerIdAndStatus(userId, REJECTED);
+                bookingViews = bookingRepository.findByBookerIdAndStatus(userId, REJECTED, pageable);
                 break;
             default:
                 throw new InternalError();
@@ -99,28 +105,30 @@ public class BookingServiceImpl implements BookingService {
         return BookingDTOMapper.fromCollection(bookingViews);
     }
 
-    private Collection<BookingOutDTO> getOutDTOListByStateParamToOwner(Long userId, String stateParam) {
+    private List<BookingOutDTO> getOutDTOListByStateParamToOwner(Long ownerId, String stateParam,
+                                                                 Integer from, Integer size) {
         final StateParam state = StateParam.stateOf(stateParam);
-        final Collection<BookingView> bookingViews;
+        final List<BookingView> bookingViews;
         final LocalDateTime time = LocalDateTime.now();
+        final Pageable pageable = PageRequest.of((from / size), size);
         switch (state) {
             case ALL:
-                bookingViews = bookingRepository.findByOwnerId(userId);
+                bookingViews = bookingRepository.findByOwnerId(ownerId, pageable);
                 break;
             case CURRENT:
-                bookingViews = bookingRepository.findByOwnerIdCurrentTime(userId, time, time);
+                bookingViews = bookingRepository.findByOwnerIdCurrentTime(ownerId, time, pageable);
                 break;
             case PAST:
-                bookingViews = bookingRepository.findByOwnerIdPastTime(userId, time);
+                bookingViews = bookingRepository.findByOwnerIdPastTime(ownerId, time, pageable);
                 break;
             case FUTURE:
-                bookingViews = bookingRepository.findByOwnerIdFutureTime(userId, time);
+                bookingViews = bookingRepository.findByOwnerIdFutureTime(ownerId, time, pageable);
                 break;
             case WAITING:
-                bookingViews = bookingRepository.findByOwnerIdAndStatus(userId, WAITING);
+                bookingViews = bookingRepository.findByOwnerIdAndStatus(ownerId, WAITING, pageable);
                 break;
             case REJECTED:
-                bookingViews = bookingRepository.findByOwnerIdAndStatus(userId, REJECTED);
+                bookingViews = bookingRepository.findByOwnerIdAndStatus(ownerId, REJECTED, pageable);
                 break;
             default:
                 throw new InternalError();
@@ -135,10 +143,10 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new UserNotFoundException(bookerId));
         final Item item = itemRepository.findById(bookingDTO.getItemId())
                 .orElseThrow(() -> new ItemNotFoundException(bookingDTO.getItemId()));
-        final Booking booking = BookingDTOMapper.toBooking(bookingDTO, booker, item);
-        this.checkIsAvailable(booking);
+        Booking booking = BookingDTOMapper.toBooking(bookingDTO, booker, item);
+        this.checkIsAvailableItem(booking);
         this.checkBookerIsOwner(bookerId, booking);
-        bookingRepository.save(booking);
+        booking = bookingRepository.save(booking);
         log.info(BOOKING_ADDED, booking.getId());
         return BookingDTOMapper.fromBooking(booking);
     }
@@ -146,12 +154,12 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingOutDTO approvalBooking(Long ownerId, Long bookingId, boolean isApproved) {
-        final Booking booking = bookingRepository.findById(bookingId)
+        Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException(bookingId));
         this.checkIsOwnerOfItem(ownerId, booking);
         this.checkBookingStatus(booking);
         booking.setApprovedStatus(isApproved);
-        bookingRepository.save(booking);
+        booking = bookingRepository.save(booking);
         log.info(BOOKING_APPROVED, booking.getId());
         return BookingDTOMapper.fromBooking(booking);
     }
@@ -166,20 +174,20 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingOutDTO> getBookingsByBooker(Long bookerId, String stateParam) {
+    public List<BookingOutDTO> getBookingsByBooker(Long bookerId, String stateParam, Integer from, Integer size) {
         this.checkUserExists(bookerId);
         log.info(GET_BOOKING_LIST_BY_BOOKER, bookerId);
-        return this.getOutDTOListByStateParam(bookerId, stateParam);
+        return this.getOutDTOListByStateParam(bookerId, stateParam, from, size);
     }
 
     @Override
-    public Collection<BookingOutDTO> getBookingsByOwner(Long ownerId, String stateParam) {
+    public List<BookingOutDTO> getBookingsByOwner(Long ownerId, String stateParam, Integer from, Integer size) {
         this.checkUserExists(ownerId);
-        Collection<BookingOutDTO> list = this.getOutDTOListByStateParamToOwner(ownerId, stateParam);
-        if (list.isEmpty()) {
+        List<BookingOutDTO> bookings = this.getOutDTOListByStateParamToOwner(ownerId, stateParam, from, size);
+        if (bookings.isEmpty()) {
             throw new OwnerHasNoItemsException(ownerId);
         }
         log.info(GET_BOOKING_LIST_BY_OWNER, ownerId);
-        return list;
+        return bookings;
     }
 }
