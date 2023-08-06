@@ -77,8 +77,9 @@ class ItemRepositoryIT extends AbstractTest {
         final ItemDTO itemDto = ItemDTOMapper.fromItem(item);
         String text = getSubstringText(itemDto.getName());
         final List<ItemDTO> expectedResult = List.of(itemDto);
+        final List<ItemDTO> actual = itemRepository.findByNameOrDescription(text, pageable);
 
-        assertThat(itemRepository.findByNameOrDescription(text, pageable)).isEqualTo(expectedResult);
+        assertThat(actual).isEqualTo(expectedResult);
     }
 
     @Test
@@ -86,9 +87,13 @@ class ItemRepositoryIT extends AbstractTest {
         final ItemDTO itemDto = ItemDTOMapper.fromItem(item);
         String text = getSubstringText(itemDto.getDescription());
         final List<ItemDTO> expectedResult = List.of(itemDto);
+        final List<ItemDTO> actual = itemRepository.findByNameOrDescription(text, pageable);
 
-        assertThat(itemRepository.findByNameOrDescription(text, pageable)).isEqualTo(expectedResult);
+        assertThat(actual).isNotEmpty().hasSize(1);
+        assertThat(actual).isEqualTo(expectedResult);
     }
+
+
 
     @Test
     void findWithRequestsByOwnerId() {
