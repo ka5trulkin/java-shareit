@@ -21,6 +21,7 @@ class CommentDTOMapperTest extends AbstractTest {
         final CommentDTO commentDTO = new CommentDTO();
         commentDTO.setText(text);
         final Comment actualResult = CommentDTOMapper.toCommentOnCreate(getBookingView(), commentDTO);
+        actualResult.setCreated(nowTime);
 
         assertThat(actualResult.getId()).isEqualTo(expectedResult.getId());
         assertThat(actualResult.getAuthor()).isInstanceOf(User.class);

@@ -4,7 +4,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.dto.BookingView;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
@@ -16,7 +15,6 @@ import java.util.Optional;
 
 import static ru.practicum.shareit.booking.model.Status.APPROVED;
 
-@Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("select b from Booking b join fetch b.booker join fetch b.item i join fetch i.owner " +
             "where b.booker.id = :id order by b.start DESC")

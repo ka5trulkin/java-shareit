@@ -9,8 +9,8 @@ import ru.practicum.shareit.booking.dto.BookingOutDTO;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.utils.CreateInfo;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -51,8 +51,8 @@ public class BookingController {
     @GetMapping
     List<BookingOutDTO> getBookingsByBooker(@RequestHeader(X_SHARER_USER_ID) Long bookerId,
                                             @RequestParam(defaultValue = "all") String state,
-                                            @RequestParam(defaultValue = "0") @Min(0) Integer from,
-                                            @RequestParam(defaultValue = "10") @Min(1) @Max(50) Integer size) {
+                                            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                            @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info(REQUEST_GET_BOOKING_LIST_BY_BOOKER, bookerId);
         return bookingService.getBookingsByBooker(bookerId, state, from, size);
     }
@@ -60,8 +60,8 @@ public class BookingController {
     @GetMapping("/owner")
     List<BookingOutDTO> getBookingsByOwner(@RequestHeader(X_SHARER_USER_ID) Long ownerId,
                                            @RequestParam(defaultValue = "all") String state,
-                                           @RequestParam(defaultValue = "0") @Min(0) Integer from,
-                                           @RequestParam(defaultValue = "10") @Min(1) @Max(50) Integer size) {
+                                           @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                           @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info(REQUEST_GET_BOOKING_LIST_BY_OWNER, ownerId);
         return bookingService.getBookingsByOwner(ownerId, state, from, size);
     }

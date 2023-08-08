@@ -10,8 +10,8 @@ import ru.practicum.shareit.request.dto.ItemRequestOutWithItems;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -42,8 +42,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     List<ItemRequestOutWithItems> getAll(@RequestHeader(X_SHARER_USER_ID) Long userId,
-                                         @RequestParam(defaultValue = "0") @Min(0) Integer from,
-                                         @RequestParam(defaultValue = "10") @Min(1) @Max(50) Integer size) {
+                                         @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                         @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info(REQUEST_REQUESTS_BY_USER, userId);
         return itemRequestService.getAll(userId, from, size);
     }

@@ -17,9 +17,9 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
@@ -43,19 +43,17 @@ class UserControllerIT extends AbstractTest {
     @Test
     void createUser() {
         final UserDTO userDTO = getUserDtoNoId();
-        final UserDTO expectedDTO = getUserDto();
+        final UserDTO expected = getUserDto();
 
-        when(userService.addUser(userDTO)).thenReturn(expectedDTO);
+        when(userService.addUser(userDTO)).thenReturn(expected);
 
-        String result = mockMvc.perform(post(urlPath)
+        mockMvc.perform(post(urlPath)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        assertThat(result).isEqualTo(objectMapper.writeValueAsString(expectedDTO));
+                .andExpect(jsonPath("$.id").value(expected.getId()))
+                .andExpect(jsonPath("$.name").value(expected.getName()))
+                .andExpect(jsonPath("$.email").value(expected.getEmail()));
     }
 
     @SneakyThrows
@@ -131,19 +129,17 @@ class UserControllerIT extends AbstractTest {
     @SneakyThrows
     @Test
     void updateUser() {
-        final UserDTO userDTO = getUserDto();
+        final UserDTO expected = getUserDto();
 
-        when(userService.updateUser(idOne, userDTO)).thenReturn(userDTO);
+        when(userService.updateUser(idOne, expected)).thenReturn(expected);
 
-        String result = mockMvc.perform(patch(urlPathWithIdVariable, idOne)
+        mockMvc.perform(patch(urlPathWithIdVariable, idOne)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDTO)))
+                        .content(objectMapper.writeValueAsString(expected)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        assertThat(result).isEqualTo(objectMapper.writeValueAsString(userDTO));
+                .andExpect(jsonPath("$.id").value(expected.getId()))
+                .andExpect(jsonPath("$.name").value(expected.getName()))
+                .andExpect(jsonPath("$.email").value(expected.getEmail()));
     }
 
     @SneakyThrows
@@ -177,19 +173,17 @@ class UserControllerIT extends AbstractTest {
     @SneakyThrows
     @Test
     void getUserTest() {
-        final UserDTO userDTO = getUserDto();
+        final UserDTO expected = getUserDto();
 
-        when(userService.getUser(idOne)).thenReturn(userDTO);
+        when(userService.getUser(idOne)).thenReturn(expected);
 
-        String result = mockMvc.perform(get(urlPathWithIdVariable, idOne)
+        mockMvc.perform(get(urlPathWithIdVariable, idOne)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDTO)))
+                        .content(objectMapper.writeValueAsString(expected)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        assertThat(result).isEqualTo(objectMapper.writeValueAsString(userDTO));
+                .andExpect(jsonPath("$.id").value(expected.getId()))
+                .andExpect(jsonPath("$.name").value(expected.getName()))
+                .andExpect(jsonPath("$.email").value(expected.getEmail()));
     }
 
     @SneakyThrows
@@ -206,16 +200,16 @@ class UserControllerIT extends AbstractTest {
     @SneakyThrows
     @Test
     void getAllUsers() {
-        final UserDTO userDTO = getUserDto();
+        final UserDTO expected = getUserDto();
 
-        when(userService.getAllUsers()).thenReturn(List.of(userDTO));
+        when(userService.getAllUsers()).thenReturn(List.of(expected));
 
-        String result = mockMvc.perform(get(urlPath, idOne))
+        mockMvc.perform(get(urlPath, idOne))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        assertThat(result).isEqualTo(objectMapper.writeValueAsString(List.of(userDTO)));
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$[0].id").value(expected.getId()))
+                .andExpect(jsonPath("$[0].name").value(expected.getName()))
+                .andExpect(jsonPath("$[0].email").value(expected.getEmail()));
     }
 }

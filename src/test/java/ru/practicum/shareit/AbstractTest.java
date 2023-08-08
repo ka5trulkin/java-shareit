@@ -120,7 +120,14 @@ public abstract class AbstractTest {
     }
 
     protected ItemOut getItemOut() {
-        return ItemDTOMapper.fromBookingView(getItemDto(), List.of(getCommentDto()));
+        return ItemOut.outBuilder()
+                .ownerId(idOne)
+                .name(name)
+                .description(description)
+                .available(available)
+                .requestId(idOne)
+                .comments(List.of(getCommentDto()))
+                .build();
     }
 
     protected ItemDTO getItemDtoNoId() {

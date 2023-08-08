@@ -11,28 +11,27 @@ import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 class ItemRequestRepositoryIT extends AbstractTest {
     @Autowired
-    private ItemRequestRepository itemRequestRepository;
-    @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private ItemRequestRepository itemRequestRepository;
     private User user;
     private ItemRequest itemRequest;
     private Long ownerId;
-    private Long anotherUserId;
-    private Long itemRequestId;
 
     @BeforeEach
     void beforeEach() {
         user = getUserNoId();
         itemRequest = getItemRequestNoId();
         ownerId = userRepository.save(user).getId();
-        anotherUserId = ownerId + 1;
         itemRequest.setOwner(user);
-        itemRequestId = itemRequestRepository.save(itemRequest).getId();
+        itemRequestRepository.save(itemRequest);
     }
 
     @AfterEach
@@ -43,21 +42,24 @@ class ItemRequestRepositoryIT extends AbstractTest {
 
     @Test
     void findByOwner_Id() {
-        final ItemRequestDTO expectedResult = getItemRequestDto();
-        expectedResult.setId(itemRequestId);
+        final ItemRequest expected = itemRequest;
+        final List<ItemRequestDTO> actual = itemRequestRepository.findByOwner_Id(ownerId);
 
-        assertThat(itemRequestRepository.findByOwner_Id(ownerId).size()).isEqualTo(1);
-        assertThat(itemRequestRepository.findByOwner_Id(ownerId).get(0)).isEqualTo(expectedResult);
+        assertThat(actual).isNotEmpty().hasSize(1);
+        assertThat(actual.get(0).getId()).isEqualTo(expected.getId());
+        assertThat(actual.get(0).getDescription()).isEqualTo(expected.getDescription());
+        assertThat(actual.get(0).getCreated()).isAfter(nowTime);
     }
 
     @Test
     void findByOwner_IdNot() {
-        final ItemRequestDTO expectedResult = getItemRequestDto();
-        expectedResult.setId(itemRequestId);
+        final ItemRequest expected = itemRequest;
+        final Long notOwnerId = ownerId + 1;
+        final List<ItemRequestDTO> actual = itemRequestRepository.findByOwner_IdNot(notOwnerId, pageable);
 
-        assertThat(itemRequestRepository.findByOwner_IdNot(anotherUserId, pageable).size())
-                .isEqualTo(1);
-        assertThat(itemRequestRepository.findByOwner_IdNot(anotherUserId, pageable).get(0))
-                .isEqualTo(expectedResult);
+        assertThat(actual).isNotEmpty().hasSize(1);
+        assertThat(actual.get(0).getId()).isEqualTo(expected.getId());
+        assertThat(actual.get(0).getDescription()).isEqualTo(expected.getDescription());
+        assertThat(actual.get(0).getCreated()).isAfter(nowTime);
     }
 }

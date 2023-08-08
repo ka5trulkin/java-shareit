@@ -6,7 +6,6 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,7 +24,6 @@ public class CommentDTOMapper {
                 .author(author)
                 .item(item)
                 .text(commentDTO.getText())
-                .created(LocalDateTime.now())
                 .build();
     }
 

@@ -19,9 +19,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest extends AbstractTest {
     @Mock
-    UserService userService;
+    private UserService userService;
     @InjectMocks
-    UserController controller;
+    private UserController controller;
 
     @Test
     void createUser() {

@@ -2,7 +2,6 @@ package ru.practicum.shareit.request.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.item_request.ItemRequestNotFoundException;
@@ -16,6 +15,7 @@ import ru.practicum.shareit.request.dto.ItemRequestOutWithItems;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.utils.PageApp;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,7 +48,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Transactional
     public ItemRequestDTO addRequest(Long ownerId, ItemRequestCreate request) {
         this.checkUserExists(ownerId);
-        ItemRequest itemRequest = ItemRequestDTOMapper.toItemRequest(ownerId, request);
+        ItemRequest itemRequest = ItemRequestDTOMapper.toItemRequestOnCreate(ownerId, request);
         itemRequest = itemRequestRepository.save(itemRequest);
         log.info(ITEM_REQUEST_ADDED, ownerId);
         return ItemRequestDTOMapper.fromItemRequest(itemRequest);
@@ -67,7 +67,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public List<ItemRequestOutWithItems> getAll(Long userId, Integer from, Integer size) {
         this.checkUserExists(userId);
         final List<ItemRequestDTO> requests =
-                itemRequestRepository.findByOwner_IdNot(userId, PageRequest.of((from / size), size));
+                itemRequestRepository.findByOwner_IdNot(userId, PageApp.ofStartingIndex(from, size));
         final List<ItemViewWithRequest> items = itemRepository.findByRequestIdIn(this.getIds(requests));
         log.info(GET_REQUESTS_BY_USER, userId);
         return ItemRequestDTOMapper.getOutWithItems(requests, items);

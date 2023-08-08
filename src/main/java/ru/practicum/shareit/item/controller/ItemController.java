@@ -11,8 +11,8 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.utils.CreateInfo;
 import ru.practicum.shareit.utils.UpdateInfo;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.CREATED;
@@ -51,16 +51,16 @@ public class ItemController {
 
     @GetMapping
     List<ItemOut> getItemsByOwner(@RequestHeader(X_SHARER_USER_ID) Long ownerId,
-                                  @RequestParam(defaultValue = "0") @Min(0) Integer from,
-                                  @RequestParam(defaultValue = "10") @Min(1) @Max(50) Integer size) {
+                                  @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                  @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info(REQUEST_GET_ITEM_LIST);
         return itemService.getItemsByOwner(ownerId, from, size);
     }
 
     @GetMapping("/search")
     List<ItemOut> getItemBySearch(@RequestParam String text,
-                                  @RequestParam(defaultValue = "0") @Min(0) Integer from,
-                                  @RequestParam(defaultValue = "10") @Min(1) @Max(50) Integer size) {
+                                  @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                  @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info(REQUEST_GET_ITEM_BY_QUERY, text);
         return itemService.getItemsBySearch(text, from, size);
     }

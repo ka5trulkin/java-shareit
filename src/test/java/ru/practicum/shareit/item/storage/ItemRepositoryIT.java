@@ -22,11 +22,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 class ItemRepositoryIT extends AbstractTest {
     @Autowired
-    ItemRepository itemRepository;
+    private ItemRepository itemRepository;
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
     @Autowired
-    ItemRequestRepository itemRequestRepository;
+    private ItemRequestRepository itemRequestRepository;
     private Item item;
     private User user;
     private ItemRequest itemRequest;

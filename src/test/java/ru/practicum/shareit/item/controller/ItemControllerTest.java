@@ -22,7 +22,7 @@ class ItemControllerTest extends AbstractTest {
     @Mock
     private ItemService itemService;
     @InjectMocks
-    ItemController controller;
+    private ItemController controller;
 
     @Test
     void createItem() {

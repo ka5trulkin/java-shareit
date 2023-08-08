@@ -21,13 +21,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 class CommentRepositoryIT extends AbstractTest {
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
     @Autowired
-    ItemRepository itemRepository;
+    private ItemRepository itemRepository;
     @Autowired
-    ItemRequestRepository itemRequestRepository;
+    private ItemRequestRepository itemRequestRepository;
     @Autowired
-    CommentRepository commentRepository;
+    private CommentRepository commentRepository;
     private Item item;
     private User user;
     private ItemRequest itemRequest;
@@ -67,7 +67,7 @@ class CommentRepositoryIT extends AbstractTest {
         assertThat(actualResult).hasSize(1);
         assertThat(actualResult.get(0).getId()).isEqualTo(expectedResult.getId());
         assertThat(actualResult.get(0).getText()).isEqualTo(expectedResult.getText());
-        assertThat(actualResult.get(0).getCreated()).isEqualTo(expectedResult.getCreated());
+        assertThat(actualResult.get(0).getCreated()).isAfter(nowTime);
         assertThat(actualResult.get(0).getAuthor().getId()).isEqualTo(expectedResult.getAuthor().getId().intValue());
         assertThat(actualResult.get(0).getAuthor().getName()).isEqualTo(expectedResult.getAuthor().getName());
         assertThat(actualResult.get(0).getItem().getId()).isEqualTo(expectedResult.getItem().getId().intValue());
@@ -82,7 +82,7 @@ class CommentRepositoryIT extends AbstractTest {
         assertThat(actualResult).hasSize(1);
         assertThat(actualResult.get(0).getId()).isEqualTo(expectedResult.getId());
         assertThat(actualResult.get(0).getText()).isEqualTo(expectedResult.getText());
-        assertThat(actualResult.get(0).getCreated()).isEqualTo(expectedResult.getCreated());
+        assertThat(actualResult.get(0).getCreated()).isAfter(nowTime);
         assertThat(actualResult.get(0).getAuthor().getId()).isEqualTo(expectedResult.getAuthor().getId().intValue());
         assertThat(actualResult.get(0).getAuthor().getName()).isEqualTo(expectedResult.getAuthor().getName());
         assertThat(actualResult.get(0).getItem().getId()).isEqualTo(expectedResult.getItem().getId().intValue());

@@ -16,7 +16,8 @@ class ItemRequestDTOMapperTest extends AbstractTest {
     @Test
     void toItemRequest() {
         final ItemRequestCreate itemRequestCreate = new ItemRequestCreate(description);
-        final ItemRequest actualResult = ItemRequestDTOMapper.toItemRequest(idOne, itemRequestCreate);
+        final ItemRequest actualResult = ItemRequestDTOMapper.toItemRequestOnCreate(idOne, itemRequestCreate);
+        actualResult.setCreated(nowTime);
 
         assertThat(actualResult.getDescription()).isEqualTo(description);
         assertThat(actualResult.getCreated()).isInstanceOf(LocalDateTime.class);

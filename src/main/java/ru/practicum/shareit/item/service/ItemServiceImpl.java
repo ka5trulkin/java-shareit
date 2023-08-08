@@ -2,7 +2,6 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingView;
@@ -23,6 +22,7 @@ import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.utils.PageApp;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -127,7 +127,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemOut> getItemsByOwner(Long ownerId, Integer from, Integer size) {
-        final List<ItemDTO> items = itemRepository.findByOwnerId(ownerId, PageRequest.of((from / size), size));
+        final List<ItemDTO> items = itemRepository.findByOwnerId(ownerId, PageApp.ofStartingIndex(from, size));
         log.info(GET_ITEM_LIST);
         return this.getOutDTOList(items);
     }
@@ -138,7 +138,7 @@ public class ItemServiceImpl implements ItemService {
             log.info(GET_ITEM_LIST_BY_QUERY, text);
             return Collections.emptyList();
         }
-        final List<ItemDTO> items = itemRepository.findByNameOrDescription(text, PageRequest.of((from / size), size));
+        final List<ItemDTO> items = itemRepository.findByNameOrDescription(text, PageApp.ofStartingIndex(from, size));
         log.info(GET_ITEM_LIST_BY_QUERY, text);
         return this.getOutDTOList(items);
     }

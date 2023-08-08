@@ -2,8 +2,6 @@ package ru.practicum.shareit.exception.handler;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import ru.practicum.shareit.exception.base.DataConflictException;
@@ -15,10 +13,7 @@ import static org.springframework.http.HttpStatus.*;
 
 @ExtendWith(MockitoExtension.class)
 class ErrorHandlerTest {
-    @Mock
-    private ResponseError responseError;
-    @InjectMocks
-    private ErrorHandler errorHandler;
+    private final ErrorHandler errorHandler = new ErrorHandler();
     private final String errorMessage = "errorMessage";
 
     private ResponseError getResponseError(HttpStatus status) {

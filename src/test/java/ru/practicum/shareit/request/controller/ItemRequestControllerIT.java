@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.AbstractTest;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.item.dto.item.ItemInRequest;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.request.dto.ItemRequestCreate;
 import ru.practicum.shareit.request.dto.ItemRequestDTO;
@@ -19,11 +20,13 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.practicum.shareit.utils.PatternsApp.DATE_TIME;
 import static ru.practicum.shareit.utils.PatternsApp.X_SHARER_USER_ID;
 
 @WebMvcTest
@@ -46,20 +49,18 @@ class ItemRequestControllerIT extends AbstractTest {
     @Test
     void createItemRequest() {
         final ItemRequestCreate itemRequestCreate = new ItemRequestCreate(description);
-        final ItemRequestDTO expectedDTO = getItemRequestDto();
+        final ItemRequestDTO expected = getItemRequestDto();
 
-        when(requestService.addRequest(idOne, itemRequestCreate)).thenReturn(expectedDTO);
+        when(requestService.addRequest(idOne, itemRequestCreate)).thenReturn(expected);
 
-        String result = mockMvc.perform(post(urlPath)
+        mockMvc.perform(post(urlPath)
                         .header(X_SHARER_USER_ID, idOne)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(itemRequestCreate)))
                 .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        assertThat(result).isEqualTo(objectMapper.writeValueAsString(expectedDTO));
+                .andExpect(jsonPath("$.id").value(expected.getId()))
+                .andExpect(jsonPath("$.description").value(expected.getDescription()))
+                .andExpect(jsonPath("$.created").value(expected.getCreated().format(ofPattern(DATE_TIME))));
     }
 
     @SneakyThrows
@@ -95,37 +96,53 @@ class ItemRequestControllerIT extends AbstractTest {
     @SneakyThrows
     @Test
     void getAllToOwner() {
-        final ItemRequestOutWithItems expectedOut = getItemRequestOutWithItems();
+        final ItemRequestOutWithItems expected = getItemRequestOutWithItems();
+        final ItemInRequest expectedItem = expected.getItems().get(0);
 
-        when(requestService.getAllToOwner(anyLong())).thenReturn(List.of(expectedOut));
+        when(requestService.getAllToOwner(anyLong())).thenReturn(List.of(expected));
 
-        String result = mockMvc.perform(get(urlPath)
+        mockMvc.perform(get(urlPath)
                         .header(X_SHARER_USER_ID, idOne))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        assertThat(result).isEqualTo(objectMapper.writeValueAsString(List.of(expectedOut)));
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$[0].id").value(expected.getId()))
+                .andExpect(jsonPath("$[0].description").value(expected.getDescription()))
+                .andExpect(jsonPath("$[0].created").value(expected.getCreated().format(ofPattern(DATE_TIME))))
+                .andExpect(jsonPath("$[0].items").isArray())
+                .andExpect(jsonPath("$[0].items").isNotEmpty())
+                .andExpect(jsonPath("$[0].items[0].id").value(expectedItem.getId()))
+                .andExpect(jsonPath("$[0].items[0].name").value(expectedItem.getName()))
+                .andExpect(jsonPath("$[0].items[0].description").value(expectedItem.getDescription()))
+                .andExpect(jsonPath("$[0].items[0].available").value(expectedItem.getAvailable()))
+                .andExpect(jsonPath("$[0].items[0].requestId").value(expectedItem.getRequestId()));
     }
 
     @SneakyThrows
     @Test
     void getAll() {
-        final ItemRequestOutWithItems expectedOut = getItemRequestOutWithItems();
+        final ItemRequestOutWithItems expected = getItemRequestOutWithItems();
+        final ItemInRequest expectedItem = expected.getItems().get(0);
 
-        when(requestService.getAll(anyLong(), anyInt(), anyInt())).thenReturn(List.of(expectedOut));
+        when(requestService.getAll(anyLong(), anyInt(), anyInt())).thenReturn(List.of(expected));
 
-        String result = mockMvc.perform(get("/requests/all")
+        mockMvc.perform(get("/requests/all")
                         .header(X_SHARER_USER_ID, idOne)
                         .param("from", String.valueOf(1))
                         .param("size", String.valueOf(1)))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        assertThat(result).isEqualTo(objectMapper.writeValueAsString(List.of(expectedOut)));
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$[0].id").value(expected.getId()))
+                .andExpect(jsonPath("$[0].description").value(expected.getDescription()))
+                .andExpect(jsonPath("$[0].created").value(expected.getCreated().format(ofPattern(DATE_TIME))))
+                .andExpect(jsonPath("$[0].items").isArray())
+                .andExpect(jsonPath("$[0].items").isNotEmpty())
+                .andExpect(jsonPath("$[0].items[0].id").value(expectedItem.getId()))
+                .andExpect(jsonPath("$[0].items[0].name").value(expectedItem.getName()))
+                .andExpect(jsonPath("$[0].items[0].description").value(expectedItem.getDescription()))
+                .andExpect(jsonPath("$[0].items[0].available").value(expectedItem.getAvailable()))
+                .andExpect(jsonPath("$[0].items[0].requestId").value(expectedItem.getRequestId()));
     }
 
     @SneakyThrows
@@ -154,30 +171,24 @@ class ItemRequestControllerIT extends AbstractTest {
 
     @SneakyThrows
     @Test
-    void getAll_whenSizeMoreThenFifty_thenStatusIsServerError() {
-        mockMvc.perform(get("/requests/all")
-                        .header(X_SHARER_USER_ID, idOne)
-                        .param("from", String.valueOf(1))
-                        .param("size", String.valueOf(51)))
-                .andExpect(status().is5xxServerError());
-
-        verify(requestService, never()).getAll(anyLong(), anyInt(), anyInt());
-    }
-
-    @SneakyThrows
-    @Test
     void getRequest() {
-        final ItemRequestOutWithItems expectedOut = getItemRequestOutWithItems();
+        final ItemRequestOutWithItems expected = getItemRequestOutWithItems();
+        final ItemInRequest expectedItem = expected.getItems().get(0);
 
-        when(requestService.getRequest(anyLong(), anyLong())).thenReturn(expectedOut);
+        when(requestService.getRequest(anyLong(), anyLong())).thenReturn(expected);
 
-        String result = mockMvc.perform(get("/requests/{requestId}", idOne)
+        mockMvc.perform(get("/requests/{requestId}", idOne)
                         .header(X_SHARER_USER_ID, idOne))
                 .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        assertThat(result).isEqualTo(objectMapper.writeValueAsString(expectedOut));
+                .andExpect(jsonPath("$.id").value(expected.getId()))
+                .andExpect(jsonPath("$.description").value(expected.getDescription()))
+                .andExpect(jsonPath("$.created").value(expected.getCreated().format(ofPattern(DATE_TIME))))
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.items").isNotEmpty())
+                .andExpect(jsonPath("$.items[0].id").value(expectedItem.getId()))
+                .andExpect(jsonPath("$.items[0].name").value(expectedItem.getName()))
+                .andExpect(jsonPath("$.items[0].description").value(expectedItem.getDescription()))
+                .andExpect(jsonPath("$.items[0].available").value(expectedItem.getAvailable()))
+                .andExpect(jsonPath("$.items[0].requestId").value(expectedItem.getRequestId()));
     }
 }

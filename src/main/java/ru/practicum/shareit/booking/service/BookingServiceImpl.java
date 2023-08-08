@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +19,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.utils.PageApp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -79,7 +79,7 @@ public class BookingServiceImpl implements BookingService {
         final StateParam state = StateParam.stateOf(stateParam);
         final List<BookingView> bookingViews;
         final LocalDateTime time = LocalDateTime.now();
-        final Pageable pageable = PageRequest.of((from / size), size);
+        final Pageable pageable = PageApp.ofStartingIndex(from, size);
         switch (state) {
             case ALL:
                 bookingViews = bookingRepository.findByBookerId(userId, pageable);
@@ -110,7 +110,7 @@ public class BookingServiceImpl implements BookingService {
         final StateParam state = StateParam.stateOf(stateParam);
         final List<BookingView> bookingViews;
         final LocalDateTime time = LocalDateTime.now();
-        final Pageable pageable = PageRequest.of((from / size), size);
+        final Pageable pageable = PageApp.ofStartingIndex(from, size);
         switch (state) {
             case ALL:
                 bookingViews = bookingRepository.findByOwnerId(ownerId, pageable);

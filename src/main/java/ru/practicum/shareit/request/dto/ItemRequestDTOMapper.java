@@ -6,7 +6,6 @@ import ru.practicum.shareit.item.dto.item.ItemViewWithRequest;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -15,11 +14,10 @@ import java.util.stream.Collectors;
 
 @UtilityClass
 public class ItemRequestDTOMapper {
-    public ItemRequest toItemRequest(Long ownerId, ItemRequestCreate request) {
+    public ItemRequest toItemRequestOnCreate(Long ownerId, ItemRequestCreate request) {
         final User user = User.builder().id(ownerId).build();
         return ItemRequest.builder()
                 .description(request.getDescription())
-                .created(LocalDateTime.now())
                 .owner(user)
                 .build();
     }

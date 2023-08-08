@@ -3,7 +3,6 @@ package ru.practicum.shareit.exception.handler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,7 +16,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
-@Service
 public class ErrorHandler {
     private String getValidationExceptionMessage(MethodArgumentNotValidException exception) {
         return exception.getBindingResult().getAllErrors().stream()
