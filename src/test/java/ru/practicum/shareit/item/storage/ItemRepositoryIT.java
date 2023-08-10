@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.storage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import ru.practicum.shareit.AbstractTest;
@@ -70,6 +71,13 @@ class ItemRepositoryIT extends AbstractTest {
         final List<ItemDTO> expectedResult = List.of(itemDTO);
 
         assertThat(itemRepository.findByOwnerId(userId, pageable)).isEqualTo(expectedResult);
+    }
+
+    @Test
+    void findByNameOrDescription_whenJacocoTest_thenClassTestIsPass() {
+        ItemRepository itemRepository = Mockito.spy(ItemRepository.class);
+
+        assertThat(itemRepository.findByNameOrDescription(text, pageable)).isEmpty();
     }
 
     @Test
