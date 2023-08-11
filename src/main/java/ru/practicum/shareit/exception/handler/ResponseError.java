@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import ru.practicum.shareit.service.PatternsApp;
+import ru.practicum.shareit.utils.PatternsApp;
 
 import java.time.LocalDateTime;
 

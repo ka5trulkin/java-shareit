@@ -12,7 +12,7 @@ import ru.practicum.shareit.user.dto.UserDTOMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
-import java.util.Collection;
+import java.util.List;
 
 import static ru.practicum.shareit.user.UserLogMessage.*;
 
@@ -23,9 +23,9 @@ import static ru.practicum.shareit.user.UserLogMessage.*;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
-    private void saveWithEmailCheck(User user) {
+    private User saveWithEmailCheck(User user) {
         try {
-            userRepository.save(user);
+            return userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
             throw new UserEmailAlreadyExistException(user.getEmail());
         }
@@ -34,8 +34,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDTO addUser(UserDTO userDTO) {
-        final User user = UserDTOMapper.toUserWhenCreate(userDTO);
-        this.saveWithEmailCheck(user);
+        User user = UserDTOMapper.toUserWhenCreate(userDTO);
+        user = this.saveWithEmailCheck(user);
         log.info(USER_ADDED, user.getId(), user.getEmail());
         return UserDTOMapper.fromUser(user);
     }
@@ -44,8 +44,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDTO updateUser(long id, UserDTO userDTO) {
         final User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
-        final User updatedUser = UserDTOMapper.toUserWhenUpdate(user, userDTO);
-        this.saveWithEmailCheck(updatedUser);
+        User updatedUser = UserDTOMapper.toUserWhenUpdate(user, userDTO);
+        updatedUser = this.saveWithEmailCheck(updatedUser);
         log.info(USER_UPDATED, id);
         return UserDTOMapper.fromUser(updatedUser);
     }
@@ -53,8 +53,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(long id) {
-        log.info(USER_DELETED, id);
         userRepository.deleteById(id);
+        log.info(USER_DELETED, id);
     }
 
     @Override
@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<UserDTO> getAllUsers() {
+    public List<UserDTO> getAllUsers() {
         log.info(GET_USER_LIST);
         return userRepository.findAllBy();
     }

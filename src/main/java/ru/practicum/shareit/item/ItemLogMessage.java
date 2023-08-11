@@ -1,5 +1,8 @@
 package ru.practicum.shareit.item;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class ItemLogMessage {
     public static final String REQUEST_ADD_ITEM = "Запрос на добавление вещи Name:'{}'";
     public static final String REQUEST_ADD_COMMENT = "Запрос на добавление комментария от пользователя ID:'{}'";
@@ -11,6 +14,6 @@ public class ItemLogMessage {
     public static final String COMMENT_ADDED = "Комментарий ID:'{}' добавлен";
     public static final String ITEM_UPDATED = "Вещь ID:'{}' обновлена";
     public static final String GET_ITEM = "Получение вещи ID:'{}'";
-    public static final String GET_ITEM_BY_QUERY = "Получение вещи по запросу:'{}'";
+    public static final String GET_ITEM_LIST_BY_QUERY = "Получение списка вещей по запросу:'{}'";
     public static final String GET_ITEM_LIST = "Получение списка вещей";
 }
