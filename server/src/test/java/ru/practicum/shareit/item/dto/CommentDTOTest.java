@@ -10,10 +10,7 @@ import ru.practicum.shareit.AbstractTest;
 import ru.practicum.shareit.item.dto.comment.CommentDTO;
 import ru.practicum.shareit.item.dto.comment.CommentDTOMapper;
 
-import java.time.format.DateTimeFormatter;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static ru.practicum.shareit.utils.PatternsApp.DATE_TIME_MS;
 
 @JsonTest
 class CommentDTOTest extends AbstractTest {
@@ -33,6 +30,6 @@ class CommentDTOTest extends AbstractTest {
         assertThat(content).extractingJsonPathStringValue("$.authorName")
                 .isEqualTo(commentDTO.getAuthorName());
         assertThat(content).extractingJsonPathStringValue("$.created")
-                .isEqualTo(commentDTO.getCreated().format(DateTimeFormatter.ofPattern(DATE_TIME_MS)));
+                .isEqualTo(commentDTO.getCreated().toString());
     }
 }

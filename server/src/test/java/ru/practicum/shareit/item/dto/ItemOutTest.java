@@ -19,7 +19,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static ru.practicum.shareit.utils.PatternsApp.DATE_TIME;
-import static ru.practicum.shareit.utils.PatternsApp.DATE_TIME_MS;
 
 @JsonTest
 class ItemOutTest extends AbstractTest {
@@ -72,6 +71,6 @@ class ItemOutTest extends AbstractTest {
         assertThat(content).extractingJsonPathStringValue("$.comments[0].authorName")
                 .isEqualTo(itemOut.getComments().get(0).getAuthorName());
         assertThat(content).extractingJsonPathStringValue("$.comments[0].created")
-                .isEqualTo(itemOut.getComments().get(0).getCreated().format(DateTimeFormatter.ofPattern(DATE_TIME_MS)));
+                .isEqualTo(itemOut.getComments().get(0).getCreated().toString());
     }
 }

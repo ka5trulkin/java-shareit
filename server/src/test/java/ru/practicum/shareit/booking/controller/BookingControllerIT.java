@@ -19,6 +19,7 @@ import ru.practicum.shareit.user.service.UserService;
 import java.util.List;
 
 import static java.time.LocalDateTime.now;
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -73,8 +74,8 @@ class BookingControllerIT extends AbstractTest {
                         .content(objectMapper.writeValueAsString(bookingDTO)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(expected.getId()))
-                .andExpect(jsonPath("$.start").value(expected.getStart().format(ofPattern(DATE_TIME))))
-                .andExpect(jsonPath("$.end").value(expected.getEnd().format(ofPattern(DATE_TIME))))
+                .andExpect(jsonPath("$.start").value(expected.getStart().format(ISO_DATE_TIME)))
+                .andExpect(jsonPath("$.end").value(expected.getEnd().format(ISO_DATE_TIME)))
                 .andExpect(jsonPath("$.status").value(expected.getStatus().name()))
                 .andExpect(jsonPath("$.booker.id").value(expected.getBooker().getId()))
                 .andExpect(jsonPath("$.item.id").value(expected.getItem().getId()))

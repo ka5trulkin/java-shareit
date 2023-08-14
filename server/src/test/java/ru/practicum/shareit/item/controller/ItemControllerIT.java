@@ -19,12 +19,12 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
 
-import static java.time.format.DateTimeFormatter.ofPattern;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static ru.practicum.shareit.utils.PatternsApp.*;
+import static ru.practicum.shareit.utils.PatternsApp.ITEMS_PREFIX;
+import static ru.practicum.shareit.utils.PatternsApp.X_SHARER_USER_ID;
 
 @WebMvcTest
 class ItemControllerIT extends AbstractTest {
@@ -220,6 +220,6 @@ class ItemControllerIT extends AbstractTest {
                 .andExpect(jsonPath("$.id").value(expected.getId()))
                 .andExpect(jsonPath("$.text").value(expected.getText()))
                 .andExpect(jsonPath("$.authorName").value(expected.getAuthorName()))
-                .andExpect(jsonPath("$.created").value(expected.getCreated().format(ofPattern(DATE_TIME_MS))));
+                .andExpect(jsonPath("$.created").value(expected.getCreated().toString()));
     }
 }
